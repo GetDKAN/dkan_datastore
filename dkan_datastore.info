@@ -1,0 +1,9 @@
+name = dkan_datastore
+core = 7.x
+package = Features
+dependencies[] = ctools
+dependencies[] = data
+dependencies[] = feeds
+dependencies[] = feeds_field_fetcher
+dependencies[] = feeds_flatstore_processor
+dependencies[] = schema
