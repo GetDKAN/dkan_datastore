@@ -11,3 +11,7 @@ dependencies[] = feeds_flatstore_processor
 dependencies[] = rest_server
 dependencies[] = schema
 dependencies[] = services
+
+features[ctools][] = feeds:feeds_importer_default:1
+features[features_api][] = api:1
+features[feeds_importer][] = dkan_file
