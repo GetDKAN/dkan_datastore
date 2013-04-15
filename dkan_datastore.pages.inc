@@ -21,15 +21,15 @@ function dkan_datastore_datastore_api($node) {
     }
     else {
       $output .= t('Access resource data via a web API with powerful query support.');
-      $output .=  '<h3>' . t('Resource ID') . '</h3>';
+      $output .= '<h3>' . t('Resource ID') . '</h3>';
       $output .= t('The Resource ID for this resource is ') . $node->uuid;
-      $output .=  '<h3>' . t('Example Query') . '</h3>';
-      GLOBAL $base_url;
+      $output .= '<h3>' . t('Example Query') . '</h3>';
+      global $base_url;
       $url = $base_url . '/api/action/datastore/search.json?resource_id=' . $node->uuid . '&limit=5';
       $output .= '<p>' . l($url, $url) . '</p>';
       $output .= '<p>' . t('Query this datastore and return first five results') . '</p>';
-      $output .=  '<h3>' . t('Documentation') . '</h3>';
-      $output .= '<p>' . t('See DKAN API documentation for more details: ') . l('http://docs.getdkan.com/docs/dkan-documentation/dkan-api/datastore-api', 'DKAN Datastore API'). '</p>';
+      $output .= '<h3>' . t('Documentation') . '</h3>';
+      $output .= '<p>' . t('See DKAN API documentation for more details: ') . l(t('DKAN Datastore API'), 'http://docs.getdkan.com/docs/dkan-documentation/dkan-api/datastore-api') . '</p>';
     }
   }
   else {
@@ -91,8 +91,7 @@ function dkan_datastore_import_tab_form($form, &$form_state, $node) {
     $form['#count'] = $source_config->itemCount();
     if ($progress !== FEEDS_BATCH_COMPLETE) {
       $form['actions']['submit']['#disabled'] = TRUE;
-      $form['actions']['submit']['#value'] =
-        t('Importing (@progress %)', array('@progress' => number_format(100 * $progress, 0)));
+      $form['actions']['submit']['#value'] = t('Importing (@progress %)', array('@progress' => number_format(100 * $progress, 0)));
     }
   }
   else {
@@ -104,6 +103,9 @@ function dkan_datastore_import_tab_form($form, &$form_state, $node) {
   return $form;
 }
 
+/**
+ * Submit function for import tab.
+ */
 function dkan_datastore_import_tab_form_submit($form, &$form_state) {
   $form_state['redirect'] = $form['#redirect'];
   $feed_nid = $form['#feed_nid'];
@@ -145,8 +147,7 @@ function dkan_datastore_delete_tab_form($form, &$form_state, $importer_id, $node
   $progress = $source->progressClearing();
   if ($progress !== FEEDS_BATCH_COMPLETE) {
     $form['actions']['submit']['#disabled'] = TRUE;
-    $form['actions']['submit']['#value'] =
-      t('Deleting (@progress %)', array('@progress' => number_format(100 * $progress, 0)));
+    $form['actions']['submit']['#value'] = t('Deleting (@progress %)', array('@progress' => number_format(100 * $progress, 0)));
   }
   $form['#submit'] = array('feeds_delete_tab_form_submit');
   return $form;
@@ -195,4 +196,3 @@ function dkan_datastore_unlock_tab_form($form, &$form_state, $importer_id, $node
   $form['#submit'] = array('feeds_unlock_tab_form_submit');
   return $form;
 }
-

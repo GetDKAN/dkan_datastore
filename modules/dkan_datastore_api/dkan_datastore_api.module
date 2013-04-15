@@ -3,9 +3,8 @@
 /**
  * @file
  * Data API via services.
+ * TODO: Add search element, investigate caching, add uuids.
  */
-
-// TODO: Add search element, investigate caching, add uuids.
 
 /**
  * Implements hook_ctools_plugin_api().
@@ -19,13 +18,17 @@ function dkan_datastore_api_ctools_plugin_api($owner, $api) {
 }
 
 /**
- * Implements hook_services_resources.
+ * Implements hook_services_resources().
  */
 function dkan_datastore_api_services_resources() {
   return array(
     'dkan_datastore_search' => array(
       'index' => array(
-        'file' => array('type' => 'inc', 'module' => 'services', 'name' => 'resources/user_resource'),
+        'file' => array(
+          'type' => 'inc',
+          'module' => 'services',
+          'name' => 'resources/user_resource',
+        ),
         'description' => 'Data API for DKAN datastores',
         'callback' => '_dkan_datastore_api_datastore_index',
         'args' => array(
@@ -103,8 +106,8 @@ function dkan_datastore_api_services_resources() {
 }
 
 /**
- * Creates index based off of query.
- * For arguments, see: dkan_datastore_api_services_resources().
+ * Creates index based off of query. For arguments, see:
+ * dkan_datastore_api_services_resources().
  */
 function _dkan_datastore_api_datastore_index($resource_ids, $filters, $query, $offset, $limit, $fields, $sort, $join) {
   try {
@@ -149,7 +152,7 @@ function _dkan_datastore_api_datastore_index($resource_ids, $filters, $query, $o
     }
   }
   catch(Exception $ex) {
-    return array( 'Caught exception: ' . $ex->getMessage());
+    return array('Caught exception: ' . $ex->getMessage());
   }
   $results = services_resource_execute_index_query($data_select);
   return dkan_datastore_api_resource_build_index_list($results, $table, $fields);
@@ -162,9 +165,9 @@ function _dkan_datastore_api_datastore_index($resource_ids, $filters, $query, $o
  */
 function dkan_datastore_api_add_index_conditions(&$data_select, $filters, $alias = 't') {
   if (is_array($filters)) {
-    foreach($filters as $num => $filter) {
+    foreach ($filters as $num => $filter) {
       if (is_array($filter)) {
-        foreach($filter as $key => $value) {
+        foreach ($filter as $key => $value) {
           $data_select->condition($num . '.' . $key, $filter, 'IN');
         }
       }
@@ -216,7 +219,7 @@ function dkan_datastore_api_tablename($resource_id) {
 function dkan_datastore_api_build_index_query($table, $offset, $limit, $fields, $sort, $alias = 't') {
   $data_select = db_select($table, $alias);
   if (isset($sort) && is_array($sort)) {
-    foreach($sort as $field => $type) {
+    foreach ($sort as $field => $type) {
       $data_select->orderBy($alias . ' .' . $field, $type);
     }
   }
@@ -265,7 +268,7 @@ function dkan_datastore_api_resource_build_index_list($results, $table, $fields)
 
   $help = array('help' => dkan_datastore_api_resource_help());
   $count = array('count' => count($items));
-  $success = count($items) ? array('success' => true) : array('success' => false);
+  $success = count($items) ? array('success' => TRUE) : array('success' => FALSE);
   $schema = drupal_get_schema($table);
   if ($fields == '*') {
     $fields = array('fields' => $schema['fields']);
@@ -283,6 +286,9 @@ function dkan_datastore_api_resource_build_index_list($results, $table, $fields)
   return $items;
 }
 
+/**
+ * Creates help text for API.
+ */
 function dkan_datastore_api_resource_help() {
   return t('Search a datastore table. :param resource_id: id or alias of the data that is going to be selected.');
 }

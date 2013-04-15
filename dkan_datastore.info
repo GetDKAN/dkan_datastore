@@ -1,6 +1,7 @@
-name = dkan_datastore
+name = DKAN Datastore
+description = Creates a datastore designed to make it easy to share open data.
 core = 7.x
-package = Features
+package = DKAN
 dependencies[] = ctools
 dependencies[] = data
 dependencies[] = dkan_dataset
@@ -10,4 +11,3 @@ dependencies[] = feeds_flatstore_processor
 dependencies[] = rest_server
 dependencies[] = schema
 dependencies[] = services
-
