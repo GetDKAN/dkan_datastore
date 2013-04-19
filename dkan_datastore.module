@@ -4,6 +4,8 @@
  * Creates DKAN Datastore
  */
 
+ include_once('dkan_datastore.features.inc');
+
 /**
  * Implements hook_menu().
  */
