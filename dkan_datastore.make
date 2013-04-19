@@ -5,6 +5,14 @@ projects[feeds][subdir] = contrib
 projects[feeds][version] = 2.x
 projects[feeds][patch][1127696] = http://drupal.org/files/feeds-1127696-multiple-importers-per-content-type-45.patch
 
+projects[feeds][subdir] = "contrib"
+projects[feeds][version] = "2.x"
+projects[feeds][download][type] = "git"
+projects[feeds][download][url] = "http://git.drupal.org/project/feeds.git"
+projects[feeds][download][revision] = 54025f9
+projects[feeds][download][branch] = 7.x-2.x
+projects[feeds][type] = "module"
+
 projects[feeds_field_fetcher][subdir] = contrib
 projects[feeds_field_fetcher][download][type] = git
 projects[feeds_field_fetcher][download][url] = "http://git.drupal.org/sandbox/acouch/1952744.git"
