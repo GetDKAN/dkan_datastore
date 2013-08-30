@@ -238,7 +238,7 @@ function dkan_datastore_api_resource_build_index_query(&$query, $page, $fields, 
   if (!user_access('perform unlimited index queries') && $page_size > $default_limit) {
     $page_size = $default_limit;
   }
-  $query->range($page * $page_size, $page_size);
+  $query->range($page, $page_size);
   if ($fields == '*') {
     $query->fields($alias);
   }
@@ -272,11 +272,15 @@ function dkan_datastore_api_resource_build_index_list($results, $table, $fields)
   $schema = drupal_get_schema($table);
   if ($fields == '*') {
     $fields = array('fields' => $schema['fields']);
+    foreach ($fields['fields'] as $name => $field) {
+      $fields['fields'][$name]['label'] = $name;
+    }
   }
   else {
     $used_fields = explode(',', $fields);
     foreach ($used_fields as $key => $field) {
       $output_fields[$field] = $schema['fields'][$field];
+      $output_fields[$field]['label'] = $field;
     }
     $fields = array('fields' => $output_fields);
   }
