@@ -1,0 +1,10 @@
+name = DKAN Recline
+description = Provides DKAN specific implementation of recline including connection to Data API if available.
+package = DKAN API
+core = 7.x
+php = 5.2.4
+dependencies[] = dkan_datastore
+dependencies[] = dkan_datastore_api
+dependencies[] = recline
+dependencies[] = services
+version = alpha1
