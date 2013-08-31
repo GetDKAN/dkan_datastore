@@ -93,13 +93,16 @@ function dkan_datastore_feeds_access($action, $node) {
     return FALSE;
   }
   if ($action != 'import') {
-    if ($importer_id = feeds_get_importer_id($node->type)) {
-      $source_config = feeds_source($importer_id, $node->nid);
-      $fetcher = get_class($source_config->importer->fetcher);
-      $source = isset($source_config->config[$fetcher]['source']) ? $source_config->config[$fetcher]['source'] : '';
-      if (!$source) {
-        return FALSE;
+    if ($importer_ids = feeds_get_importer_ids($node->type, $node->nid)) {
+      foreach ($importer_ids as $importer_id) {
+        $source_config = feeds_source($importer_id, $node->nid);
+        $fetcher = get_class($source_config->importer->fetcher);
+        $source = isset($source_config->config[$fetcher]['source']) ? $source_config->config[$fetcher]['source'] : '';
+        if ($source) {
+          return TRUE;
+        }
       }
+      return FALSE;
     }
     else {
       return FALSE;
