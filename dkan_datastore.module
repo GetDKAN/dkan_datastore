@@ -129,11 +129,19 @@ function dkan_datastore_feeds_access($action, $node) {
  * Access callback for Data API instructions.
  */
 function dkan_datastore_datastore_api_access($node) {
-  if ($node->type != 'resource' || !isset($node->field_upload[DKAN_FIELD_LANG][0])) {
-    return FALSE;
+  $upload = '';
+  $link = '';
+  if (isset($node->field_upload) && $node->field_upload) {
+    $upload = isset($node->field_upload[$node->language]) ? $node->field_upload[$node->language] : $node->field_upload['und'];
+  }
+  if (isset($node->field_link_remote_file) && $node->field_link_remote_file) {
+    $link = isset($node->field_link_remote_file[$node->language]) ? $node->field_link_remote_file[$node->language] :  $node->field_link_remote_file['und'];
+  }
+  if ($node->type == 'resource' && ($upload || $link)) {
+    return node_access('view', $node);
   }
   else {
-    return node_access('view', $node);
+    return FALSE;
   }
 }
 
@@ -141,11 +149,19 @@ function dkan_datastore_datastore_api_access($node) {
  * Access callback for download tab.
  */
 function dkan_datastore_download_access($node) {
-  if ($node->type != 'resource' || !isset($node->field_upload[DKAN_FIELD_LANG][0])) {
-    return FALSE;
+  $upload = '';
+  $link = '';
+  if (isset($node->field_upload) && $node->field_upload) {
+    $upload = isset($node->field_upload[$node->language]) ? $node->field_upload[$node->language] : $node->field_upload['und'];
+  }
+  if (isset($node->field_link_remote_file) && $node->field_link_remote_file) {
+    $link = isset($node->field_link_remote_file[$node->language]) ? $node->field_link_remote_file[$node->language] :  $node->field_link_remote_file['und'];
+  }
+  if ($node->type == 'resource' && ($upload || $link)) {
+    return node_access('view', $node);
   }
   else {
-    return node_access('view', $node);
+    return FALSE;
   }
 }
 
@@ -177,11 +193,20 @@ function dkan_add_resource($node) {
  * Implements hook_node_update().
  */
 function dkan_datastore_node_update($node) {
-  // Source attached to node.
-  if (isset($node->feeds) && $node->type == 'resource' && $importer_ids = feeds_get_importer_ids($node->type)) {
-    $fid = $node->field_upload[DKAN_FIELD_LANG][0]['fid'];
-    if ($fid) {
-      $file = file_load($fid);
+  // Remove node from feeds list if not csv.
+  if (isset($node->feeds) && $node->type == 'resource' && $importer_ids = feeds_get_importer_ids($node->type, $node->nid)) {
+    $upload = '';
+    $link = '';
+    if (isset($node->field_upload) && $node->field_upload) {
+      $upload = isset($node->field_upload[$node->language]) ? $node->field_upload[$node->language] : $node->field_upload['und'];
+    }
+    if (isset($node->field_link_remote_file) && $node->field_link_remote_file) {
+      $link = isset($node->field_link_remote_file[$node->language]) ? $node->field_link_remote_file[$node->language] :  $node->field_link_remote_file['und'];
+    }
+    if (($fid = $link) || ($fid = $upload)) {
+      $file = file_load($fid[0]['fid']);
+      // Currently we only support csv files, so don't allow importing
+      // otherwise.
       if ($file->filemime != 'text/csv') {
         feeds_node_delete($node);
       }

@@ -9,27 +9,37 @@
  * Callback for Data API instructions.
  */
 function dkan_datastore_datastore_api($node) {
-  $importer_id = feeds_get_importer_id($node->type);
-  $source_config = feeds_source($importer_id, $node->nid);
-  $fetcher = get_class($source_config->importer->fetcher);
-  $source = isset($source_config->config[$fetcher]['source']) ? $source_config->config[$fetcher]['source'] : '';
   $output = '<h2>' . t('DKAN Datastore API') . '</h2>';
-  if ($source) {
-    $progress = $source_config->progressImporting();
-    if ($progress != FEEDS_BATCH_COMPLETE) {
-      $output .= t('This data source has not yet completed importing. Import is at @progress%. The API for this data source will be available upon the completion of the import process.', array('@progress' => number_format(100 * $progress, 0)));
-    }
-    else {
-      $output .= t('Access resource data via a web API with powerful query support.');
-      $output .= '<h3>' . t('Resource ID') . '</h3>';
-      $output .= t('The Resource ID for this resource is ') . $node->uuid;
-      $output .= '<h3>' . t('Example Query') . '</h3>';
-      global $base_url;
-      $url = $base_url . '/api/action/datastore/search.json?resource_id=' . $node->uuid . '&limit=5';
-      $output .= '<p>' . l($url, $url) . '</p>';
-      $output .= '<p>' . t('Query this datastore and return first five results') . '</p>';
-      $output .= '<h3>' . t('Documentation') . '</h3>';
-      $output .= '<p>' . t('See DKAN API documentation for more details: ') . l(t('DKAN Datastore API'), 'http://docs.getdkan.com/docs/dkan-documentation/dkan-api/datastore-api') . '</p>';
+  if ($importer_ids = feeds_get_importer_ids($node->type, $node->nid)) {
+    foreach ($importer_ids as $importer_id) {
+      $source_config = feeds_source($importer_id, $node->nid);
+      $fetcher = get_class($source_config->importer->fetcher);
+      $source = isset($source_config->config[$fetcher]['source']) ? $source_config->config[$fetcher]['source'] : '';
+      if ($source) {
+        $table_name = feeds_flatstore_processor_table_name($source_config->id, $source_config->feed_nid);
+        if (!db_table_exists($table_name)) {
+          $output .= t('This resources has a file that has not been added to the datastore.');
+        }
+        else {
+          $progress = $source_config->progressImporting();
+          if ($progress != FEEDS_BATCH_COMPLETE) {
+            $output .= t('This data source has not yet completed importing. Import is at @progress%. The API for this data source will be available upon the completion of the import process.', array('@progress' => number_format(100 * $progress, 0)));
+          }
+          else {
+            $output .= t('Access resource data via a web API with powerful query support.');
+            $output .= '<h3>' . t('Resource ID') . '</h3>';
+            $output .= t('The Resource ID for this resource is ') . $node->uuid;
+            $output .= '<h3>' . t('Example Query') . '</h3>';
+            global $base_url;
+            $url = $base_url . '/api/action/datastore/search.json?resource_id=' . $node->uuid . '&limit=5';
+            $output .= '<p>' . l($url, $url) . '</p>';
+            $output .= '<p>' . t('Query this datastore and return first five results') . '</p>';
+            $output .= '<h3>' . t('Documentation') . '</h3>';
+            $output .= '<p>' . t('See DKAN API documentation for more details: ') . l(t('DKAN Datastore API'), 'http://docs.getdkan.com/docs/dkan-documentation/dkan-api/datastore-api') . '</p>';
+          }
+        }
+        return $output;
+      }
     }
   }
   else {
