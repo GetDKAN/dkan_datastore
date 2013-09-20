@@ -52,17 +52,25 @@ function dkan_datastore_datastore_api($node) {
  * Callback for download tab.
  */
 function dkan_datastore_download($node) {
-  $uri = isset($node->field_upload[DKAN_FIELD_LANG][0]['uri']) ? $node->field_upload[DKAN_FIELD_LANG][0]['uri'] : $node->field_upload[0]['uri'];
-  $url = file_create_url($uri);
-  return drupal_goto($url);
+  $node_wrapper = entity_metadata_wrapper('node', $node);
+  if ($node_wrapper->field_upload->value()) {
+    $url = file_create_url($node_wrapper->field_upload->value()->uri);
+    return drupal_goto($url);
+  }
+  else {
+    drupal_set_message(t('No download available for this resource'));
+    return '';
+  }
 }
 
 /**
  * Callback for back link.
  */
 function dkan_datastore_back($node) {
-  if (isset($node->field_dataset_ref[DKAN_FIELD_LANG][0]['target_id'])) {
-    drupal_goto('node/' . $node->field_dataset_ref[DKAN_FIELD_LANG][0]['target_id']);
+  $node_wrapper = entity_metadata_wrapper('node', $node);
+  $dataset = $node_wrapper->field_dataset_ref->value();
+  if ($dataset) {
+    drupal_goto('node/' . $dataset->nid);
   }
   return '';
 }
