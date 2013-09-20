@@ -88,7 +88,7 @@ function dkan_datastore_api_services_resources() {
         'args' => array(
           array(
             'name' => 'resource_id',
-            'optional' => FALSE,
+            'optional' => TRUE,
             'type' => 'array',
             'description' => 'id or alias of the resource to be searched against.',
             'default value' => 0,
@@ -331,7 +331,9 @@ function dkan_datastore_api_resource_build_index_list($results, $table, $fields,
   $return = new stdClass();
   if ($fields == '*') {
     foreach ($schema['fields'] as $name => $field) {
-      $return->fields[] = array('id' => $name, 'type' => $field['type']);
+      if ($name != 'id' && $name != 'timestamp' && $name != 'feeds_entity_id') {
+        $return->fields[] = array('id' => $name, 'type' => $field['type']);
+      }
     }
   }
   else {
