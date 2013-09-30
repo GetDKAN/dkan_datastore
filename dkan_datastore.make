@@ -8,8 +8,8 @@ projects[feeds][download][url] = "http://git.drupal.org/project/feeds.git"
 projects[feeds][download][revision] = 1383713
 projects[feeds][download][branch] = 7.x-2.x
 projects[feeds][type] = "module"
-projects[feeds][patch][1428272] = feeds-encoding_support_CSV-1428272-41.patch
-projects[feeds][patch][1127696] = http://drupal.org/files/feeds-1127696-multiple-importers-per-content-type-55.patch
+projects[feeds][patch][1428272] = http://drupal.org/files/feeds-encoding_support_CSV-1428272-52.patch
+projects[feeds][patch][1127696] = http://drupal.org/files/feeds-1127696-multiple-importers-per-content-type-59.patch
 
 projects[feeds_field_fetcher][subdir] = contrib
 projects[feeds_field_fetcher][download][type] = git
