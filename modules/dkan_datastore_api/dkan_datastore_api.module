@@ -331,7 +331,8 @@ function dkan_datastore_api_resource_build_index_list($results, $table, $fields,
   $return = new stdClass();
   if ($fields == '*') {
     foreach ($schema['fields'] as $name => $field) {
-      if ($name != 'id' && $name != 'timestamp' && $name != 'feeds_entity_id') {
+      // Don't include fields added by feeds_flatstore_processor.
+      if ($name != 'feeds_flatstore_entry_id' && $name != 'timestamp' && $name != 'feeds_entity_id') {
         $return->fields[] = array('id' => $name, 'type' => $field['type']);
       }
     }
