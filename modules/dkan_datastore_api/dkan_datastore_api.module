@@ -160,8 +160,9 @@ function dkan_datastore_api_services_resources() {
 }
 
 /**
- * Creates index based off of query. For arguments, see:
- * dkan_datastore_api_services_resources().
+ * Creates index based off of query.
+ *
+ * For arguments, see: dkan_datastore_api_services_resources().
  */
 function _dkan_datastore_api_datastore_index($resource_ids, $filters, $query, $offset, $limit, $fields, $sort, $join) {
   try {
@@ -347,7 +348,7 @@ function dkan_datastore_api_resource_build_index_list($results, $table, $fields,
   }
   $return->resource_id = $resource_ids;
   $return->limit = $count['limit'];
-  $return->total = db_query("SELECT id from {$table}")->rowCount();
+  $return->total = db_query("SELECT feeds_flatstore_entry_id from {$table}")->rowCount();
   $return->records = $items;
 
   return $help + $success + array('result' => $return);
