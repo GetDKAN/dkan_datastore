@@ -293,7 +293,7 @@ function dkan_datastore_api_build_index_query($table, $offset, $limit, $fields, 
  * Same as services version but not adding conditions.
  */
 function dkan_datastore_api_resource_build_index_query(&$query, $page, $fields, $page_size, $alias, $table) {
-  $default_limit = variable_get("{$table}_index_page_size", 20);
+  $default_limit = variable_get("dkan_datastore_default_page_size", 100);
   if ((!user_access('perform unlimited index queries') && $page_size > $default_limit) || !$page_size) {
     $page_size = $default_limit;
   }
