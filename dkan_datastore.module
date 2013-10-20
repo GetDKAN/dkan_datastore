@@ -252,7 +252,7 @@ function dkan_datastore_node_view($node, $view_mode, $langcode) {
  */
 function dkan_datastore_status($node) {
   if ($file = dkan_datastore_file_field($node)) {
-    if ($file->filemime == 'text/csv') {
+    if ((is_object($file) && $file->filemime == 'text/csv') || (is_array($file) && $file['filemime'] == 'text/csv')) {
       if (dkan_datastore_records($node->nid)) {
         return DKAN_DATASTORE_EXISTS;
       }
