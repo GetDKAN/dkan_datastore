@@ -33,6 +33,17 @@ function dkan_datastore_api_menu() {
 }
 
 /**
+ * Implements hook_init().
+ */
+function dkan_datastore_api_init() {
+  if (isset($_GET['resource_id']) && $_GET['q'] != 'api/action/datastore/search.json') {
+    $_GET['query'] = $_GET['q'];
+    unset($_GET['q']);
+    drupal_goto('api/action/datastore/search.json', array('query' => $_GET));
+  }
+}
+
+/**
  * Redirects from CKAN API url to DKAN.
  *
  * Necessary since Services wouldn't accept datastore_search as an endpoint.
@@ -174,8 +185,8 @@ function _dkan_datastore_api_datastore_index($resource_ids, $filters, $query, $o
       $data_select = dkan_datastore_api_build_index_query($table, $offset, $limit, $fields, $sort);
       dkan_datastore_api_add_index_conditions($data_select, $filters);
     }
+    // Query for a multiple resources.
     else {
-      // Query for a multiple resources.
       $i = 0;
       foreach ($resource_ids as $alias => $resource_id) {
         // We can't have multiple resources if we can't join them.
@@ -276,10 +287,11 @@ function dkan_datastore_api_get_feeds_source($nid) {
  * Builds index query.
  */
 function dkan_datastore_api_build_index_query($table, $offset, $limit, $fields, $sort, $alias = 't') {
+  $sort = explode(" ", $sort);
   $data_select = db_select($table, $alias);
-  if (isset($sort) && is_array($sort)) {
-    foreach ($sort as $field => $type) {
-      $data_select->orderBy($alias . ' .' . $field, $type);
+  if (isset($sort) && !empty($sort[0])) {
+    foreach (explode(",", $sort[0]) as $field) {
+      $data_select->orderBy($alias . '.' . $field, $sort[1]);
     }
   }
   else {
