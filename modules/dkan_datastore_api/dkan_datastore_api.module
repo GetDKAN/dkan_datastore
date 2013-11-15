@@ -360,7 +360,8 @@ function dkan_datastore_api_resource_build_index_list($results, $table, $fields,
   }
   $return->resource_id = $resource_ids;
   $return->limit = $count['limit'];
-  $return->total = db_query("SELECT feeds_flatstore_entry_id from {$table}")->rowCount();
+  $total = db_query("SELECT count(feeds_flatstore_entry_id) from {$table}")->fetchCol();
+  $return->total = $total[0];
   $return->records = $items;
 
   return $help + $success + array('result' => $return);
