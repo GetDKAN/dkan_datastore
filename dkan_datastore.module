@@ -278,7 +278,7 @@ function dkan_datastore_records($nid) {
     $source_id = dkan_datastore_api_get_feeds_source($nid);
     if ($table = feeds_flatstore_processor_table_name($source_id, $nid)) {
       if (db_table_exists($table)) {
-        if ($result = db_query("SELECT timestamp FROM {$table} LIMIT 1")->fetchCol()) {
+        if ($result = db_query_range("SELECT timestamp FROM {$table}", 0, 1)) {
           return TRUE;
         }
       }
