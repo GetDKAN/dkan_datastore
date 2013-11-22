@@ -304,3 +304,59 @@ function dkan_datastore_unlock_tab_form($form, &$form_state, $importer_id, $node
   $form['#submit'] = array('feeds_unlock_tab_form_submit');
   return $form;
 }
+
+/*
+* Render a datastore drop form on node/id/drop pages
+*/
+function dkan_datastore_drop_tab_form($form, &$form_state, $node) {
+  module_load_include('module', 'data', 'data');
+  module_load_include('inc', 'feeds', 'feeds.pages');
+  $form['#redirect'] = 'node/' . $node->nid;
+  $form = confirm_form($form, t('Drop this datastore?'), $form['#redirect'], '', t('Drop'), t('Cancel'), 'confirm drop');
+  
+  $importer_ids = feeds_get_importer_ids($node->type);
+  $tables_to_drop = array();
+
+  foreach ($importer_ids as $importer_id) {
+    $source = feeds_source($importer_id, $node->nid);
+    $table_name = feeds_flatstore_processor_table_name($source->id, $source->feed_nid);
+    $table = data_get_table($table_name);
+    if($table){
+      array_push($tables_to_drop, $table_name);
+    }
+  }
+
+  if (!count($tables_to_drop)){
+    $form['tables_absent'] = array(
+      '#type' => 'markup',
+      '#title' => t('Can\'t drop table'),
+      '#tree' => TRUE,
+      '#markup' => t('You need to have a file or link imported to the datastore in order to drop it.'),
+    );
+    $form['actions']['submit']['#disabled'] = TRUE;
+    $form['actions']['submit']['#value'] = t('Drop (disabled)');
+  }else{
+    $form['tables_present'] = array(
+      '#type' => 'markup',
+      '#title' => t('Drop tables'),
+      '#tree' => TRUE,
+      '#markup' => t('Are you sure you want to drop the datastore?'),
+    );
+    $form['#tables_to_drop'] = $tables_to_drop;
+    $form['actions']['submit']['#value'] = t('Drop');
+  }
+  return $form;
+}
+
+/**
+ * Submit function for drop tab.
+ */
+function dkan_datastore_drop_tab_form_submit($form, &$form_state) {
+  module_load_include('module', 'data', 'data');
+  foreach($form['#tables_to_drop'] as $table_name){
+    $table = data_get_table($table_name);
+    $table->drop();
+  }
+  drupal_set_message(t('Datastore dropped!'));
+  $form_state['redirect'] = $form['#redirect'];
+}
