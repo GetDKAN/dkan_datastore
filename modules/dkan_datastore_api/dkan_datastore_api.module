@@ -340,12 +340,35 @@ function dkan_datastore_api_resource_build_index_list($results, $table, $fields,
   $help = array('help' => dkan_datastore_api_resource_help());
   $count = array('limit' => count($items));
   $success = count($items) ? array('success' => TRUE) : array('success' => FALSE);
-  $schema = drupal_get_schema($table);
+  // Use labels from data module if available.
+  if ($data_table = data_get_table($table)) {
+    $schema = $data_table->table_schema;
+    $meta = $data_table->meta;
+    $new_items = array();
+    foreach ($items as $item) {
+      $new_item = new stdClass(); 
+      foreach ($item as $name => $data) {
+        if (isset($meta['fields'][$name]['label']) && $new_name = $meta['fields'][$name]['label']) {
+          $new_item->$new_name = $data;
+        }
+        else {
+          $new_item->$name = $data;
+        }
+      }
+      $new_items[] = $new_item;
+    }
+    $items = $new_items;
+  }
+  else {
+    $schema = drupal_get_schema($table);
+    $meta = '';
+  }
   $return = new stdClass();
   if ($fields == '*') {
     foreach ($schema['fields'] as $name => $field) {
       // Don't include fields added by feeds_flatstore_processor.
       if ($name != 'feeds_flatstore_entry_id' && $name != 'timestamp' && $name != 'feeds_entity_id') {
+        $name = $meta ? $meta['fields'][$name]['label'] : $name;
         $return->fields[] = array('id' => $name, 'type' => $field['type']);
       }
     }
@@ -354,7 +377,7 @@ function dkan_datastore_api_resource_build_index_list($results, $table, $fields,
     $used_fields = explode(',', $fields);
     foreach ($used_fields as $key => $field) {
       $output_fields[$field] = $schema['fields'][$field];
-      $output_fields[$field]['label'] = $field;
+      $output_fields[$field]['label'] = $meta ? $meta['fields'][$field]['label'] : $field;
     }
     $fields = $output_fields;
   }
