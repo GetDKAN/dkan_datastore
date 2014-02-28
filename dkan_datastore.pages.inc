@@ -129,6 +129,14 @@ function dkan_datastore_import_tab_form($form, &$form_state, $node) {
     }
     if (count($importer_ids) == 1) {
       $form = confirm_form($form, t('Import all content from source?'), 'node/' . $node->nid, '', t('Import'), t('Cancel'), 'confirm feeds update');
+      $form['description']['#markup'] = t('Manage datastore import settings below. To import click "submit"');
+      $form['description']['#weight'] = '-10';
+      $form['source_status']['#weight'] = '-11';
+      $importer = array_keys($importer_ids);
+      if (isset($form[$importer[0]]['settings']['FeedsCSVParser']['help'])) {
+        unset($form[$importer[0]]['settings']['FeedsCSVParser']['help']);
+      }
+      $form[$importer[0]]['source_status']['#title'] = '';
       $form['importer_ids'] = array(
         '#type' => 'value',
         '#value' => $importer_ids,
@@ -178,7 +186,9 @@ function dkan_datastore_import_tab_form_submit($form, &$form_state) {
   foreach (array_filter($form_state['values']['importer_ids']) as $importer_id) {
     $source = feeds_source($importer_id, $form_state['build_info']['args'][0]->nid);
     $parser = $source->importer->config['parser']['plugin_key'];
+    $processor = $source->importer->config['processor']['plugin_key'];
     $source->addConfig(array($parser => $form_state['values'][$parser]));
+    $source->addConfig(array($processor => $form_state['values'][$processor]));
     $source->save();
     feeds_source($importer_id, $form['#feed_nid'])->startImport();
   }
@@ -313,7 +323,7 @@ function dkan_datastore_drop_tab_form($form, &$form_state, $node) {
   module_load_include('inc', 'feeds', 'feeds.pages');
   $form['#redirect'] = 'node/' . $node->nid;
   $form = confirm_form($form, t('Drop this datastore?'), $form['#redirect'], '', t('Drop'), t('Cancel'), 'confirm drop');
-  
+
   $importer_ids = feeds_get_importer_ids($node->type);
   $tables_to_drop = array();
 
