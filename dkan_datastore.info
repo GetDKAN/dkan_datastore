@@ -17,3 +17,5 @@ features[features_api][] = api:2
 features[feeds_importer][] = dkan_file
 features[feeds_importer][] = dkan_link
 features[views_view][] = datasets
+files[] = includes/Datastore.inc
+files[] = includes/DkanDatastore.inc
