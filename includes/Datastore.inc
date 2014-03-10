@@ -80,7 +80,7 @@ abstract class Datastore {
   /**
    * Imports file contents into the datastore.
    */
-  public function import($form) {
+  public function import() {
   }
 
   /**

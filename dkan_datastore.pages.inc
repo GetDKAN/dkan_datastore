@@ -49,7 +49,7 @@ function dkan_datastore_add_resource($node) {
 }
 
 /**
- * Render a feeds import form on node/id/import pages.
+ * Render a datastore import form on node/id/import pages.
  */
 function dkan_datastore_import_tab_form($form, &$form_state, $node) {
   $datastore = dkan_datastore_go($node->uuid);
@@ -63,11 +63,11 @@ function dkan_datastore_import_tab_form($form, &$form_state, $node) {
  */
 function dkan_datastore_import_tab_form_submit($form, &$form_state) {
   $datastore = $form['#datastore'];
-  $datastore->manageFormSubmit($form, $form_state);
+  $datastore->manageFormSubmit($form_state);
 }
 
 /**
- * Render a feeds delete form.
+ * Render a datastore delete form.
  *
  * Used on both node pages and configuration pages.
  * Therefore $node may be missing.
@@ -80,7 +80,7 @@ function dkan_datastore_delete_tab_form($form, &$form_state, $importer_id, $node
 }
 
 /**
- * Render a feeds unlock form.
+ * Render a datastore unlock form.
  *
  * Used on both node pages and configuration pages.
  * Therefore $node may be missing.
