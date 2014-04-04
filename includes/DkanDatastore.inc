@@ -81,6 +81,7 @@ class DkanDatastore extends Datastore implements DatastoreForm {
     $total_progress = 0;
 
     $importer_ids = $this->importerIds;
+    drupal_set_message(print_r($importer_ids, 1));
 
     $form = array();
     $form['source_status'] = array(
@@ -89,10 +90,12 @@ class DkanDatastore extends Datastore implements DatastoreForm {
       '#tree' => TRUE,
     );
     if ($importer_ids) {
+      drupal_set_message('there are ids');
       $form['#feed_nid'] = $node->nid;
       $form['#redirect'] = 'node/' . $node->nid;
       foreach ($importer_ids as $importer_id => $weight) {
         $source = feeds_source($importer_id, $node->nid);
+        drupal_set_message("source $importer_id: " . print_r($source, 1));
         $importer = feeds_importer($importer_id, $node->nid);
         $source_input = isset($source->config[$source->importer->config['fetcher']['plugin_key']]['source']) ? $source->config[$source->importer->config['fetcher']['plugin_key']]['source'] : '';
         $default_values = $source->config[$source->importer->config['parser']['plugin_key']];
