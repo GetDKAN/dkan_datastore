@@ -1,0 +1,319 @@
+<?php
+
+/**
+ * @file
+ * Test file for dkan dataset module.
+ */
+
+/**
+ * Test basic Data API functionality.
+ */
+class DkanDatastoreWebTestCase extends ServicesWebTestCase {
+  protected $profile = 'standard';
+  
+  /**
+   * Information about the test.
+   */
+  public static function getInfo() {
+   return array(
+     'name'        => 'DKAN Datastore Test',
+     'description' => 'Test the functions and API for DKAN Datastore.',
+     'group'       => 'DKAN Datastore',
+   );
+  }
+
+  /**
+   * Prepares site for tests.
+   */
+  public function setUp() {
+    $args = func_get_args();
+
+    // Build the list of required modules which can be altered by passing in an
+    // array of module names to setUp().
+    if (isset($args[0])) {
+      if (is_array($args[0])) {
+        $modules = $args[0];
+      }
+      else {
+        $modules = $args;
+      }
+    }
+    else {
+      $modules = array();
+    }
+
+    $modules[] = 'ctools';
+    $modules[] = 'context';
+    $modules[] = 'block';
+    $modules[] = 'file';
+    $modules[] = 'filter';
+    $modules[] = 'image';
+    $modules[] = 'list';
+    $modules[] = 'menu';
+    $modules[] = 'number';
+    $modules[] = 'options';
+    $modules[] = 'path';
+    $modules[] = 'rdf';
+    $modules[] = 'taxonomy';
+    $modules[] = 'text';
+    $modules[] = 'user';
+    $modules[] = 'date';
+    $modules[] = 'date_api';
+    $modules[] = 'date_popup';
+    $modules[] = 'dkan_dataset';
+    $modules[] = 'dkan_dataset_api';
+    $modules[] = 'dkan_datastore_api';
+    $modules[] = 'dkan_dataset_groups';
+    $modules[] = 'dkan_dataset_content_types';
+    $modules[] = 'dkan_datastore';
+    $modules[] = 'features';
+    $modules[] = 'double_field';
+    $modules[] = 'entityreference';
+    $modules[] = 'field_group';
+    $modules[] = 'field_group_table';
+    $modules[] = 'filefield_sources';
+    $modules[] = 'geofield';
+    $modules[] = 'link';
+    $modules[] = 'link_iframe_formatter';
+    $modules[] = 'multistep';
+    $modules[] = 'ref_field_sync';
+    $modules[] = 'remote_file_source';
+    $modules[] = 'select_or_other';
+    $modules[] = 'og';
+    $modules[] = 'og_context';
+    $modules[] = 'og_extras';
+    $modules[] = 'og_ui';
+    $modules[] = 'chosen';
+    $modules[] = 'entity';
+    $modules[] = 'geophp';
+    $modules[] = 'gravatar';
+    $modules[] = 'leaflet_widget';
+    $modules[] = 'libraries';
+    $modules[] = 'recline';
+    $modules[] = 'remote_stream_wrapper';
+    $modules[] = 'restws';
+    $modules[] = 'strongarm';
+    $modules[] = 'token';
+    $modules[] = 'rdfx';
+    $modules[] = 'search_api';
+    $modules[] = 'search_api_db';
+    $modules[] = 'search_api_views';
+    $modules[] = 'facetapi';
+    $modules[] = 'autocomplete_deluxe';
+    $modules[] = 'beautytips';
+    $modules[] = 'jquery_update';
+    $modules[] = 'uuid';
+    $modules[] = 'eva';
+    $modules[] = 'views';
+    $modules[] = 'views_bulk_operations';
+    $modules[] = 'views_json';
+
+    $modules = array_unique($modules);
+    parent::setUp($modules);
+
+    $obj = features_get_features('dkan_dataset');
+    $this->assertTrue(is_object($obj), 'FEATURES OBJECT: ' . print_r($obj, 1));
+
+    $obj = features_get_features('dkan_dataset_content_types');
+    $this->assertTrue(is_object($obj), 'FEATURES OBJECT: ' . print_r($obj, 1));
+
+    $obj = features_get_features('dkan_dataset_groups');
+    $this->assertTrue(is_object($obj), 'FEATURES OBJECT: ' . print_r($obj, 1));
+
+    // Run a features rebuild to ensure our feature is fully installed.
+    features_rebuild();
+
+    // Add text formats Directly.
+    $filtered_html_format = array(
+      'format' => 'filtered_html',
+      'name' => 'Filtered HTML',
+      'weight' => 0,
+      'filters' => array(
+        // URL filter.
+        'filter_url' => array(
+          'weight' => 0,
+          'status' => 1,
+        ),
+        // HTML filter.
+        'filter_html' => array(
+          'weight' => 1,
+          'status' => 1,
+        ),
+        // Line break filter.
+        'filter_autop' => array(
+          'weight' => 2,
+          'status' => 1,
+        ),
+        // HTML corrector filter.
+        'filter_htmlcorrector' => array(
+          'weight' => 10,
+          'status' => 1,
+        ),
+      ),
+    );
+    $filtered_html_format = (object) $filtered_html_format;
+    filter_format_save($filtered_html_format);
+
+    // Admin Permissions.
+    $admin_perms = array(
+      'access content',
+      'administer site configuration',
+      'administer content types',
+      'administer features',
+      'administer nodes',
+      'administer feeds',
+      'bypass node access',
+      'create dataset content',
+      'create resource content',
+      'edit any dataset content',
+      'edit any resource content',
+      'administer users',
+      'manage datastore'
+    );
+    $this->verbose('Creating admin user with permissions: ' . var_export($admin_perms, TRUE));
+    // Create an admin user and log in.
+    $this->admin_user = $this->drupalCreateUser($admin_perms);
+    $this->drupalLogin($this->admin_user);
+  } 
+
+  /**
+   * Absolute path to Drupal root.
+   */
+  public function absolute() {
+    return realpath(getcwd());
+  }
+
+  /**
+   * Get the absolute directory path of the feeds module.
+   */
+  public function absoluteDatastorePath() {
+    return  $this->absolute() . '/' . drupal_get_path('module', 'dkan_datastore');
+  }
+
+  public function apiURI($node, $filters = array(), $q = NULL, $offset = 0, $limit = 5. $fields = array(), $sort = NULL, $join = array()) {
+    $query = array('resource_id' => $node->uuid);
+
+    if ($q) {
+      $query['q'] = $q;
+    }
+    if (!empty($filters)) {
+      foreach($filters as $filter => $value) {
+        $query["filters[$filter]"] = $value;
+      }
+    }
+    if ($offset && is_numeric($offset)) {
+      $query['offset'] = (int) $offset;
+    }
+    if ($limit && is_numeric($limit)) {
+      $query['limit'] = (int) $limit;
+    }
+    if ($fields) {
+      $query['fields'] = $fields;
+    }
+    if ($sort) {
+      $query['sort'] = $sort;
+    }
+    if ($join) {
+      $query['join'] = $join;
+    }
+    return check_plain(url('api/action/datastore/search.json', array('query' => $query, 'absolute' => TRUE)));
+  }
+
+  /**
+   * Tests managing the datastore.
+   */
+  public function testManageDatastore() {
+    // Create dataset node
+    $settings = array(
+      'type' => 'dataset',
+      'title' => $this->randomName(32),
+      'body' => array(LANGUAGE_NONE => array(array($this->randomName(64)))),
+    );
+    $dataset_node = $this->drupalCreateNode($settings);
+    $this->assertTrue((is_object($dataset_node) && $dataset_node->type == 'dataset'), "Dataset node created");
+
+    // Create resource node
+    $path = $this->absoluteDatastorePath() . '/tests/countries.csv';
+    $csv = file_get_contents($path);
+    $file = file_save_data($csv, 'public://countries.csv', FILE_EXISTS_RENAME);
+    $settings = array(
+      'type' => 'resource',
+      'title' => $this->randomName(32),
+      'body' => array(LANGUAGE_NONE => array(array($this->randomName(64)))),      
+      // 'field_format' => array(LANGUAGE_NONE => array(array('tid' => current(array_keys(taxonomy_get_term_by_name('csv')))))),
+      'field_dataset_ref' => array(LANGUAGE_NONE => array(array('target_id' => $dataset_node->nid))),
+      'field_upload' => array(LANGUAGE_NONE => array(array(
+        'fid' => $file->fid,
+        'uri' => $file->uri,
+        'filemime' => 'text/csv',
+        'grid' => 1,
+        'graph' => 0,
+        'map' => 1,
+      ))),
+    );
+    $resource_node = $this->drupalCreateNode($settings);
+    $this->verbose('Resource node created: <pre>' . var_export($resource_node, TRUE) . '</pre>');
+    $node2 = node_load($resource_node->nid);
+    $this->verbose('Resource node created: <pre>' . var_export($node2, TRUE) . '</pre>');
+
+    $this->drupalGet('node/' . $resource_node->nid . '/datastore');
+    $this->assertText('No imported items.');
+
+
+
+
+
+    $this->assertFalse(dkan_datastore_status($resource_node), 'DKAN Datastore does not yet exist.');
+
+    $this->drupalPost('node/' . $resource_node->nid . '/datastore', array(), 'Import');
+
+    // The following text should display, but currently does not on the manage tab. Fix and uncomment.
+    // $this->assertText('Your file for this resource has been added to the datastore.');
+
+    $this->assertEqual(dkan_datastore_status($resource_node), DKAN_DATASTORE_EXISTS, 'dkan_datastore_status() confirms datastore status = exists.');
+
+    // Check table exists and has data
+    $table_exists = $this->assertTrue($this->datastoreCheckTable($resource_node->nid), "Datastore table exists.");
+    if($table_exists) {
+      $this->assertTrue($this->datastoreCheckTableData($resource_node->nid), "Table contains expected records.");
+    }
+
+    $this->drupalGet('node/' . $resource_node->nid . '/api');
+    $this->assertText("The Resource ID for this resource is {$resource_node->uuid}");
+
+    // Run example query
+    
+  }
+
+  public function datastoreCheckTable($nid) {
+    // see if table exists
+    return db_table_exists('feeds_datastore_dkan_file_' . $nid);
+  }
+
+  public function datastoreCheckTableData($nid) {
+    // We're actually going to see if we get a hit for a particular country id
+    $result = db_select('feeds_datastore_dkan_file_' . $nid, 'f')
+              ->fields('f', array('country'))
+              ->condition('id', 2)
+              ->execute();
+
+    return ($result->fetchField() == 'CA');
+  }
+}
+
+  // DKAN Datastore
+  // 1) Create resource node with attached csv file
+  // 2) Click to manage datastore
+  // 3) Import file
+  // 4) Check database tables
+  //
+  // DKAN Datastore API
+  // 1) Check queries against API once file is loaded.
+  // 2) Queries
+  //    1. Limit
+  //    2. Query
+  //    3. Filters
+  //    4. Offset
+  //    5. Fields
+  //    6. Sort
+  //    7. Join (requires second dataset)
