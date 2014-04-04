@@ -8,7 +8,7 @@
 /**
  * Test basic Data API functionality.
  */
-class DkanDatastoreWebTestCase extends DrupalWebTestCase {
+class DkanDatastoreWebTestCase extends ServicesWebTestCase {
   protected $profile = 'standard';
   
   /**
@@ -69,6 +69,7 @@ class DkanDatastoreWebTestCase extends DrupalWebTestCase {
     $modules[] = 'features';
     $modules[] = 'double_field';
     $modules[] = 'entityreference';
+    $modules[] = 'feeds_flatstore_processor';
     $modules[] = 'field_group';
     $modules[] = 'field_group_table';
     $modules[] = 'filefield_sources';
@@ -253,15 +254,14 @@ class DkanDatastoreWebTestCase extends DrupalWebTestCase {
     );
     $resource_node = $this->drupalCreateNode($settings);
     $this->verbose('Resource node created: <pre>' . var_export($resource_node, TRUE) . '</pre>');
-    $node2 = node_load($resource_node->nid);
-    $this->verbose('Resource node created: <pre>' . var_export($node2, TRUE) . '</pre>');
+    $this->drupalGet('node/' . $resource_node->nid);
 
     $this->drupalGet('node/' . $resource_node->nid . '/datastore');
     $this->assertText('No imported items.');
 
 
 
-
+    // $result = $this->servicesGet($url, $data = NULL, $headers = array());
 
     // $this->assertFalse(dkan_datastore_status($resource_node), 'DKAN Datastore does not yet exist.');
 
