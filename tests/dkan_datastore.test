@@ -69,6 +69,7 @@ class DkanDatastoreWebTestCase extends ServicesWebTestCase {
     $modules[] = 'features';
     $modules[] = 'double_field';
     $modules[] = 'entityreference';
+    $modules[] = 'feeds_field_fetcher';
     $modules[] = 'feeds_flatstore_processor';
     $modules[] = 'field_group';
     $modules[] = 'field_group_table';
@@ -253,30 +254,26 @@ class DkanDatastoreWebTestCase extends ServicesWebTestCase {
       ))),
     );
     $resource_node = $this->drupalCreateNode($settings);
-    $this->verbose('Resource node created: <pre>' . var_export($resource_node, TRUE) . '</pre>');
-    $this->drupalGet('node/' . $resource_node->nid);
-
     $this->drupalGet('node/' . $resource_node->nid . '/datastore');
     $this->assertText('No imported items.');
+    $this->verbose('Datastore status: ' . dkan_datastore_status($resource_node));
+    $this->assertFalse(dkan_datastore_status($resource_node), 'DKAN Datastore does not yet exist.');
 
+    $this->drupalPost('node/' . $resource_node->nid . '/datastore', array(), 'Import');
 
+    $this->drupalGet('node/' . $resource_node->nid);
+    $this->assertText('Your file for this resource has been added to the datastore.');
 
+    $this->assertEqual(dkan_datastore_status($resource_node), DKAN_DATASTORE_EXISTS, 'dkan_datastore_status() confirms datastore status = exists.');
+
+    // Check table exists and has data
+    $table_exists = $this->assertTrue($this->datastoreCheckTable($resource_node->nid), "Datastore table exists.");
+    if($table_exists) {
+      $this->assertTrue($this->datastoreCheckTableData($resource_node->nid), "Table contains expected records.");
+    }
+
+    // $this->drupalGet('node/' . $resource_node->nid . '/datastore');
     // $result = $this->servicesGet($url, $data = NULL, $headers = array());
-
-    // $this->assertFalse(dkan_datastore_status($resource_node), 'DKAN Datastore does not yet exist.');
-
-    // $this->drupalPost('node/' . $resource_node->nid . '/datastore', array(), 'Import');
-
-    // // The following text should display, but currently does not on the manage tab. Fix and uncomment.
-    // // $this->assertText('Your file for this resource has been added to the datastore.');
-
-    // $this->assertEqual(dkan_datastore_status($resource_node), DKAN_DATASTORE_EXISTS, 'dkan_datastore_status() confirms datastore status = exists.');
-
-    // // Check table exists and has data
-    // $table_exists = $this->assertTrue($this->datastoreCheckTable($resource_node->nid), "Datastore table exists.");
-    // if($table_exists) {
-    //   $this->assertTrue($this->datastoreCheckTableData($resource_node->nid), "Table contains expected records.");
-    // }
 
     // $this->drupalGet('node/' . $resource_node->nid . '/api');
     // $this->assertText("The Resource ID for this resource is {$resource_node->uuid}");
