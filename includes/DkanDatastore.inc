@@ -122,7 +122,8 @@ class DkanDatastore extends Datastore implements DatastoreForm {
    */
   public function rows() {
     if ($this->status == DKAN_DATASTORE_EXISTS) {
-      return db_query("SELECT count(timestamp) FROM {$this->tableName}")->fetchField();
+      $result = db_select($this->tableName, 't')->addExpression('count(t.timestamp)')->execute();
+      return $result->fetchField();
     }
     return FALSE;
   }
@@ -152,7 +153,6 @@ class DkanDatastore extends Datastore implements DatastoreForm {
     module_load_include('inc', 'feeds', 'feeds.pages');
     $total_progress = 0;
     $importer_id = $this->importerId;
-    drupal_set_message($importer_id);
     $form = array();
     if ($importer_id) {
       $source = $this->source;
