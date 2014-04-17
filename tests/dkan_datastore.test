@@ -175,8 +175,8 @@ class DkanDatastoreWebTestCase extends DrupalWebTestCase {
     $table_exists = $this->assertDatastoreTable($this->resource);
     // Check a couple of records hitting the db directly.
     if ($table_exists) {
-      // $this->assertDatastoreTableData($this->resource, 1, 'US');
-      // $this->assertDatastoreTableData($this->resource, 3, 'AR');
+      $this->assertDatastoreTableData($this->resource, 1, 'US');
+      $this->assertDatastoreTableData($this->resource, 3, 'AR');
     }
 
     // Query the api.
@@ -184,7 +184,7 @@ class DkanDatastoreWebTestCase extends DrupalWebTestCase {
 
     // Test API Results.
     $this->assertTrue(strpos($result->help, 'Search a datastore table.') !== FALSE);
-    // $this->assertTrue($result->success);
+    $this->assertTrue($result->success);
     foreach ($result->result as $key => $value) {
       switch ($key) {
         case 'fields':
@@ -211,23 +211,23 @@ class DkanDatastoreWebTestCase extends DrupalWebTestCase {
           break;
 
         case 'limit':
-          // $this->assertEqual($value, 4);
+          $this->assertEqual($value, 4);
           break;
 
         case 'total':
-          // $this->assertEqual($value, 4);
+          $this->assertEqual($value, 4);
           break;
 
         case 'records':
-          // $is_set = $this->assertEqual(count($value), 4);
-          // if ($is_set) {
-          //   foreach ($records as $record) {
-          //     if ($record->country === 'US') {
-          //       $this->assertEqual($record->population, '315209000');
-          //       $this->assertEqual($record->id, '1');
-          //     }
-          //   }
-          // }
+          $is_set = $this->assertEqual(count($value), 4);
+          if ($is_set) {
+            foreach ($value as $record) {
+              if ($record->country === 'US') {
+                $this->assertEqual($record->population, '315209000');
+                $this->assertEqual($record->id, '1');
+              }
+            }
+          }
           break;
 
         case 'default':
