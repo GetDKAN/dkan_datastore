@@ -27,11 +27,11 @@ class DkanDatastoreWebTestCase extends DrupalWebTestCase {
    * Information about the test.
    */
   public static function getInfo() {
-   return array(
-     'name'        => 'DKAN Datastore Test',
-     'description' => 'Test the functions and API for DKAN Datastore.',
-     'group'       => 'DKAN Datastore',
-   );
+    return array(
+      'name'        => 'DKAN Datastore Test',
+      'description' => 'Test the functions and API for DKAN Datastore.',
+      'group'       => 'DKAN Datastore',
+    );
   }
 
   /**
@@ -99,7 +99,7 @@ class DkanDatastoreWebTestCase extends DrupalWebTestCase {
 
     features_rebuild();
 
-    // Create test data
+    // Create test data.
     $file_path = drupal_get_path('module', 'dkan_datastore');
     $file_path = realpath($file_path . '/tests/countries.csv');
     $file = file_get_contents($file_path);
@@ -126,7 +126,7 @@ class DkanDatastoreWebTestCase extends DrupalWebTestCase {
       )
     );
 
-    // Create Admin user with specific permissions
+    // Create Admin user with specific permissions.
     $admin_perms = array(
       'access content',
       'administer site configuration',
@@ -171,9 +171,9 @@ class DkanDatastoreWebTestCase extends DrupalWebTestCase {
       'Datastore is created for a given resource.'
     );
 
-    // Check table exists and has data
+    // Check table exists and has data.
     $table_exists = $this->assertDatastoreTable($this->resource);
-    // Check a couple of records hitting the db directly
+    // Check a couple of records hitting the db directly.
     if ($table_exists) {
       // $this->assertDatastoreTableData($this->resource, 1, 'US');
       // $this->assertDatastoreTableData($this->resource, 3, 'AR');
@@ -182,7 +182,7 @@ class DkanDatastoreWebTestCase extends DrupalWebTestCase {
     // Query the api.
     $result = $this->queryDatastoreApi($this->resource);
 
-    // Test API Results
+    // Test API Results.
     $this->assertTrue(strpos($result->help, 'Search a datastore table.') !== FALSE);
     // $this->assertTrue($result->success);
     foreach ($result->result as $key => $value) {
@@ -198,7 +198,7 @@ class DkanDatastoreWebTestCase extends DrupalWebTestCase {
           foreach ($value as $field) {
             $is_set = $this->assertTrue(isset($expected[$field->id]));
             if ($is_set) {
-              $this->assertEqual($field->type, $expected[$field->id]);  
+              $this->assertEqual($field->type, $expected[$field->id]);
             }
           }
           break;
@@ -209,7 +209,7 @@ class DkanDatastoreWebTestCase extends DrupalWebTestCase {
             $this->assertEqual($value[0], $this->resource->uuid);
           }
           break;
-        
+
         case 'limit':
           // $this->assertEqual($value, 4);
           break;
@@ -236,8 +236,17 @@ class DkanDatastoreWebTestCase extends DrupalWebTestCase {
     }
   }
 
+  /**
+   * Assert that a datastore table for a node exists.
+   * 
+   * @param object $resource
+   *   A resource node.
+   *
+   * @return bool
+   *   Returns true if the table exists.
+   */
   protected function assertDatastoreTable($resource) {
-    // see if table exists
+    // See if table exists.
     $r = $this->assertTrue(
       db_table_exists('feeds_datastore_dkan_file_' . $resource->nid),
       "Datastore table exists."
@@ -245,8 +254,21 @@ class DkanDatastoreWebTestCase extends DrupalWebTestCase {
     return $r;
   }
 
+  /**
+   * Assert that certain data exists in a table.
+   * 
+   * @param object $resource
+   *   A resource node.
+   * @param int $id
+   *   A match for the db column id.
+   * @param string $expected_result
+   *   The expected result for the query.
+   *
+   * @return bool
+   *   Returns true if data meeting the criteria exists in the db.
+   */
   protected function assertDatastoreTableData($resource, $id, $expected_result) {
-    // We're actually going to see if we get a hit for a particular country id
+    // We're actually going to see if we get a hit for a particular country id.
     $result = db_select('feeds_datastore_dkan_file_' . $resource->nid, 'f')
               ->fields('f', array('country'))
               ->condition('id', $id)
@@ -260,9 +282,20 @@ class DkanDatastoreWebTestCase extends DrupalWebTestCase {
     return $r;
   }
 
+  /**
+   * Builds query to the datastore api.
+   *
+   * @param object $resource
+   *   The resource node.
+   * @param array  $options
+   *   An associate array containing the query data.
+   *
+   * @return object
+   *   An object containing the json response.
+   */
   protected function queryDatastoreApi($resource, $options = array()) {
     $query = array('resource_id' => $resource->uuid);
-    foreach($options as $key => $value) {
+    foreach ($options as $key => $value) {
       switch ($key) {
         case 'q':
           $query['q'] = $value;
@@ -271,7 +304,7 @@ class DkanDatastoreWebTestCase extends DrupalWebTestCase {
         case 'filters':
           if (is_array($value)) {
             $filters = $value;
-            foreach($filters as $filter => $value) {
+            foreach ($filters as $filter => $value) {
               $query["$filters[$filter]"] = $value;
             }
           }
@@ -279,7 +312,7 @@ class DkanDatastoreWebTestCase extends DrupalWebTestCase {
 
         case 'offset':
           if (is_numeric($value)) {
-            $query['offset'] = (int) $value;      
+            $query['offset'] = (int) $value;
           }
           break;
 
@@ -309,7 +342,7 @@ class DkanDatastoreWebTestCase extends DrupalWebTestCase {
       'api/action/datastore/search.json',
       array(
         'query' => $query,
-        'absolute' => TRUE
+        'absolute' => TRUE,
       )
     );
     return json_decode($r);
