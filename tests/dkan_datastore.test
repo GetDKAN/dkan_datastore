@@ -19,7 +19,7 @@
  * Test basic Datastore API functionality.
  */
 class DkanDatastoreWebTestCase extends DrupalWebTestCase {
-  protected $profile = 'standard';
+  protected $profile = 'testing';
 
   protected $resource;
 
