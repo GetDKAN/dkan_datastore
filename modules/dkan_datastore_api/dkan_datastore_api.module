@@ -234,6 +234,7 @@ function _dkan_datastore_api_datastore_index($resource_ids, $filters, $query, $o
 function dkan_datastore_api_add_index_conditions(&$data_select, $filters, $alias = 't') {
   if (is_array($filters)) {
     foreach ($filters as $num => $filter) {
+      $num = str_replace(' ' , '_', $num);
       if (is_array($filter)) {
         foreach ($filter as $key => $value) {
           $data_select->condition($num . '.' . $key, $filter, 'IN');
