@@ -193,7 +193,7 @@ class DkanDatastoreWebTestCase extends DrupalWebTestCase {
             'country' => 'text',
             'population' => 'int',
             'id' => 'int',
-            'timestamp' => 'int',
+            'timestamp' => 'datetime',
           );
           foreach ($value as $field) {
             $is_set = $this->assertTrue(isset($expected[$field->id]));

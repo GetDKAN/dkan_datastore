@@ -441,7 +441,12 @@ function dkan_datastore_api_resource_build_index_list($results, $table, $fields,
       // Don't include fields added by feeds_flatstore_processor.
       if ($name != 'feeds_flatstore_entry_id' && $name != 'timestamp' && $name != 'feeds_entity_id') {
         $name = $meta ? $meta['fields'][$name]['label'] : $name;
-        $return->fields[] = array('id' => $name, 'type' => $field['type']);
+        if ($name ==  'date' || $name ==  'timestamp' || $name ==  'datetime') {
+          $return->fields[] = array('id' => $name, 'type' => 'datetime');
+        }
+        else {
+          $return->fields[] = array('id' => $name, 'type' => $field['type']);
+        }
       }
     }
   }
