@@ -336,7 +336,7 @@ function dkan_datastore_api_tablename($resource_id) {
     $nid = db_query('SELECT nid FROM {node} WHERE uuid = :uuid', array(':uuid' => $resource_id))->fetchField();
     $source_id = dkan_datastore_api_get_feeds_source($nid);
     $table = feeds_flatstore_processor_table_name($source_id, $nid);
-    if (db_table_exists($table)) {
+    if (db_table_exists($table) && dkan_datastore_datastore_api_access($nid)) {
       $tables[$resource_id] = $table;
       return $table;
     }
