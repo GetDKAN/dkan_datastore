@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/nuams/dkan_datastore.png?branch=7.x-1.x)](https://travis-ci.org/nuams/dkan_datastore)
+[![Build Status](https://travis-ci.org/NuCivic/dkan_datastore.png?branch=7.x-1.x)](https://travis-ci.org/NuCivic/dkan_datastore)
 
 # DKAN Datastore
 
@@ -24,12 +24,12 @@ drush make --no-core dkan_datastore.make
 
 ## Contributing
 
-We are accepting issues in the dkan issue thread only -> https://github.com/nuams/dkan/issues -> Please label your issue as **"component: dkan_datastore"** after submitting so we can identify problems and feature requests faster.
+We are accepting issues in the dkan issue thread only -> https://github.com/NuCivic/dkan/issues -> Please label your issue as **"component: dkan_datastore"** after submitting so we can identify problems and feature requests faster.
 
 If you can, please cross reference commits in this repo to the corresponding issue in the dkan issue thread. You can do that easily adding this text:
 
 ```
-nuams/dkan#issue_id
+NuCivic/dkan#issue_id
 ``` 
 
 to any commit message or comment replacing **issue_id** with the corresponding issue id.
