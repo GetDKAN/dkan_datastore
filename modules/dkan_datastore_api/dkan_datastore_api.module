@@ -255,7 +255,7 @@ function dkan_datastore_api_add_index_conditions(&$data_select, $filters, $alias
 function dkan_datastore_api_add_index_query(&$data_select, $table, $query) {
   if (db_driver() == 'mysql') {
     // Get fulltext fields
-    $ft_result = db_query("SHOW INDEX IN \{$table\} WHERE Index_type = 'FULLTEXT'");
+    $ft_result = db_query("SHOW INDEX IN {$table} WHERE Index_type = 'FULLTEXT'");
     $ft_fields = array();
     foreach($ft_result as $ft_row) {
       $ft_fields[] = $ft_row->Column_name;
