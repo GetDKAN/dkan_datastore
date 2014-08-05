@@ -1,6 +1,5 @@
 <?php
 
-
 /**
  * @file
  * DKAN Datatore implementation of Datastore class.
@@ -118,11 +117,7 @@ class DkanDatastore extends Datastore implements DatastoreForm {
    */
   public function apiUri() {
     return url($this->endpoint, array(
-      'query' => array(
-        'resource_id' => $this->uuid,
-        'limit' => 5),
-      'absolute' => TRUE,
-    ));
+      'query' => array('resource_id' => $this->uuid, 'limit' => 5), 'absolute' => TRUE));
   }
 
   /**
@@ -232,7 +227,6 @@ class DkanDatastore extends Datastore implements DatastoreForm {
    * Adds configuration to feeds source.
    */
   public function addConfig($config) {
-    $this->source->addConfig($config);
     $this->source->addConfig($config);
   }
 
@@ -540,4 +534,50 @@ class DkanDatastore extends Datastore implements DatastoreForm {
     }
   }
 
+  /**
+   * Adds row to table.
+   *
+   * @param array $row
+   *   Key/value array of table fields to data.
+   *
+   * @return string
+   *   Autoincrement id number for row if successful.
+   */
+  public function addRow($row = array()) {
+    if (is_array($row) && $row) {
+      $defaults = array(
+        'timestamp' => time(),
+        'feeds_entity_id' => $this->node->nid,
+      );
+      $row = array_merge($defaults, $row);
+      $insert = db_insert($this->tableName)
+        ->fields($row)
+        ->execute();
+
+      return $insert;
+    }
+    else {
+      return FALSE;
+    }
+  }
+
+  /**
+   * Deletes row from table.
+   *
+   * @param string $field
+   *   Database field to use for condition value.
+   *
+   * @param string $value
+   *   Condition value from which to delete.
+   *
+   * @return string
+   *   Number of rows deleted.
+   */
+  public function deleteRow($field, $value) {
+    $num_deleted = db_delete($this->tableName)
+      ->condition($field, $value)
+      ->execute();
+
+    return $num_deleted;
+  }
 }
