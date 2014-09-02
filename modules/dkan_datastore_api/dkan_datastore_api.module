@@ -7,56 +7,50 @@
  */
 
 /**
- * Implements hook_menu().
- */
-function dkan_datastore_api_menu() {
-  $items = array();
-
-  $items['api/3/action/%'] = array(
-    'title' => 'API Redirect',
-    'page callback' => 'dkan_datastore_api_redirect',
-    'page arguments' => array(3),
-    // TODO: use services permissions?
-    'access arguments' => array('access content'),
-    'type' => MENU_CALLBACK,
-  );
-  $items['api/3/action/datastore_search/%'] = array(
-    'title' => 'API Redirect',
-    'page callback' => 'dkan_datastore_api_redirect',
-    'page arguments' => array(5),
-    // TODO: use services permissions?
-    'access arguments' => array('access content'),
-    'type' => MENU_CALLBACK,
-  );
-
-  return $items;
-}
-
-/**
  * Implements hook_init().
  */
 function dkan_datastore_api_init() {
-  if (isset($_GET['resource_id']) && $_GET['q'] != 'api/action/datastore/search.json') {
-    $_GET['query'] = $_GET['q'];
-    unset($_GET['q']);
-    drupal_goto('api/action/datastore/search.json', array('query' => $_GET));
-  }
-}
+  // This abomination redirects between datastore_search and the 'q' request.
+  //
+  // Drupal redirects everything through the 'q' query string.
+  // CKAN uses the 'q' string for searches.
+  // Services module won't allow an endpoint to have an underscore so
+  // datastore_search is redircted to datastore/search.
+  //
+  // We can't just search for the api/action/datastore/search.json request
+  // string since we support search.xml, search.jsonp etc.
 
-/**
- * Redirects from CKAN API url to DKAN.
- *
- * Necessary since Services wouldn't accept datastore_search as an endpoint.
- */
-function dkan_datastore_api_redirect($path) {
-  $args = '';
-  if ($path == 'datastore_search') {
-    foreach ($_GET as $key => $value) {
-      if ($key != 'q') {
-        $args[$key] = $value;
-      }
+  // If the request doesn't have datastore_search, we need to redirect 'q' to
+  // 'query' if it does not have /api/action/datastore/search in it.
+  if (isset($_GET['resource_id']) && !strpos($_SERVER['REQUEST_URI'], 'datastore_search')) {
+    $request = explode('/', $_SERVER['REQUEST_URI']);
+    $query = explode('/', $_GET['q']);
+    $query_val = array();
+    foreach ($query as $key => $val) {
+      $query_val[$val] = 1;
     }
-    drupal_goto('api/action/datastore/search.json', array('query' => $args));
+    if (!isset($query_val['api']) && !isset($query_val['action']) && !isset($query_val['datastore'])) {
+      $matches = array();
+      preg_match("/(search\.)(\S*)(\?)/", $_SERVER['REQUEST_URI'], $matches);
+      $_GET['query'] = $_GET['q'];
+      unset($_GET['q']);
+      drupal_goto('api/action/datastore/search.' . $matches[2], array('query' => $_GET));
+    }
+  }
+  // If the request does have datastore_search, redirect.
+  elseif (isset($_GET['resource_id']) && strpos($_SERVER['REQUEST_URI'], 'datastore_search')) {
+    $args = $_GET;
+    // Redirect to search.json.
+    if ($args['q'] == 'api/3/action/datastore_search') {
+      unset($args['q']);
+      drupal_goto('api/action/datastore/search.json', array('query' => $args));
+    }
+    // There is an actual search in the 'q' string, so redirect that to 'query'.
+    elseif ($args['q'] != 'api/action/datastore/search.json') {
+      $args['query'] = $args['q'];
+      unset($args['q']);
+      drupal_goto('api/action/datastore/search.json', array('query' => $args));
+    }
   }
 }
 
