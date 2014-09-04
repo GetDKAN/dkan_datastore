@@ -334,8 +334,8 @@ function dkan_datastore_records($nid) {
 function dkan_datastore_file_field($node) {
   if ($node->type == 'resource') {
     $wrapper = entity_metadata_wrapper('node', $node);
-    $file = $wrapper->field_upload->value();
-    $link = $wrapper->field_link_remote_file->value();
+    $file = $wrapper->__isset("field_upload") ? $wrapper->field_upload->value() : NULL;
+    $link = $wrapper->__isset("field_link_remote_file") ? $wrapper->field_link_remote_file->value() : NULL;
     if (isset($file)) {
       return $file;
     }
