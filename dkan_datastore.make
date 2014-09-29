@@ -26,10 +26,8 @@ projects[feeds_flatstore_processor][type] = module
 projects[schema][subdir] = contrib
 projects[schema][patch][1237974] = http://drupal.org/files/schema-support-custom-types-1237974-48.patch
 
-
 projects[services][subdir] = contrib
 projects[services][version] = 3.10
-
 
 projects[data][download][type] = git
 projects[data][download][url] = "http://git.drupal.org/project/data.git"
@@ -38,6 +36,9 @@ projects[data][download][revision] = edb752c
 projects[data][subdir] = contrib
 projects[data][type] = module
 
-
+projects[job_scheduler][download][type] = git
+projects[job_scheduler][download][url] = "http://git.drupal.org/project/job_scheduler.git"
+projects[job_scheduler][download][branch] = 7.x-2.x
+projects[job_scheduler][download][revision] = c51661e
 projects[job_scheduler][subdir] = contrib
-projects[job_scheduler][version] = 2.x
+projects[job_scheduler][type] = module
