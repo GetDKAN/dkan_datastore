@@ -27,7 +27,7 @@ projects[schema][subdir] = contrib
 projects[schema][patch][1237974] = http://drupal.org/files/schema-support-custom-types-1237974-48.patch
 
 projects[services][subdir] = contrib
-projects[services][patch][2369945] = https://www.drupal.org/files/issues/services.spyc_make-2369945-1.patch
+projects[services][patch][2369946] = http://www.drupal.org/files/issues/services.spyc_make-2369946-2.patch
 projects[services][version] = 3.10
 
 projects[data][subdir] = contrib
