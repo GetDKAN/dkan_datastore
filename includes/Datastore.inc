@@ -127,6 +127,27 @@ abstract class Datastore {
       return $file;
     }
   }
+  
+  /**
+   * Updates the datastore with file.
+   */
+  public function updateByFile($uri, $truncate = TRUE) {
+    
+  }
+  
+  /**
+   * Creates a datastore with file.
+   */
+  public function createByFile($uri) {
+    
+  }
+  
+  /*
+   * Deletes the file 
+   */
+  public function deleteFile() {
+    
+  }
 
   /**
    * Retrieves file URI.
