@@ -12,7 +12,7 @@ function dkan_datastore_api_drush_command() {
     'description' => 'Deletes a datastore.',
     'callback' => 'dkan_datastore_api_datastore_delete',
     'arguments' => array(
-      'resource_id' => 'Id or alias of the resource asociated with the Datastore.'
+      'id' => 'Datastore (or resource) id.'
     ),
   );  
   
@@ -23,7 +23,7 @@ function dkan_datastore_api_drush_command() {
     'description' => 'Get the number of rows in the datastore.',
     'callback' => 'dkan_datastore_api_datastore_rows',
     'arguments' => array(
-      'resource_id' => 'Id or alias of the resource asociated with the Datastore.'
+      'id' => 'Datastore (or resource) id.'
     ),
   );    
 
@@ -31,10 +31,10 @@ function dkan_datastore_api_drush_command() {
   $items['datastore-file-update'] = array(
     'drupal dependencies' => array('dkan_datastore_api'),
     'aliases' => array('dsfu'),
-    'description' => 'Updates the file on a datastore.',
+    'description' => 'Updates the datastore file.',
     'callback' => 'dkan_datastore_api_datastore_file_update',
     'arguments' => array(
-      'resource_id' => 'Id or alias of the resource that is going to be updated.',
+      'id' => 'Datastore (or resource) id.',
       'file' => 'The path to the file.'
     ),
   );
@@ -46,7 +46,7 @@ function dkan_datastore_api_drush_command() {
     'description' => 'Deletes the file on a datastore.',
     'callback' => 'dkan_datastore_api_datastore_file_delete',
     'arguments' => array(
-      'resource_id' => 'Id or alias of the resource that is going to be updated.'
+      'id' => 'Datastore (or resource) id.'
     ),
   );  
   
@@ -57,7 +57,7 @@ function dkan_datastore_api_drush_command() {
     'description' => 'Shows the URI of the datastore file.',
     'callback' => 'dkan_datastore_api_datastore_file_uri',
     'arguments' => array(
-      'resource_id' => 'Id or alias of the resource that holds the file.'
+      'id' => 'Datastore (or resource) id.'
     ),
   );     
   
@@ -68,7 +68,7 @@ function dkan_datastore_api_drush_command() {
     'description' => 'Shows the URL of the datastore file.',
     'callback' => 'dkan_datastore_api_datastore_file_url',
     'arguments' => array(
-      'resource_id' => 'Id or alias of the resource that holds the file.'
+      'id' => 'Datastore (or resource) id.'
     ),      
   ); 
 
@@ -78,9 +78,9 @@ function dkan_datastore_api_drush_command() {
 /**
  * Callback for the datastore-delete command
  */
-function dkan_datastore_api_datastore_delete($resource_id = NULL) {
+function dkan_datastore_api_datastore_delete($id = NULL) {
   
-  if ($datastore = get_datastore($resource_id)) {
+  if ($datastore = get_datastore($id)) {
     drupal_set_message('The command is not implemented yet.');
   }
 }
@@ -88,9 +88,9 @@ function dkan_datastore_api_datastore_delete($resource_id = NULL) {
 /**
  * Callback for the datastore-rows command
  */
-function dkan_datastore_api_datastore_rows($resource_id = NULL) {
+function dkan_datastore_api_datastore_rows($id = NULL) {
   
-  if ($datastore = get_datastore($resource_id)) {
+  if ($datastore = get_datastore($id)) {
     drupal_set_message('The command is not implemented yet.');
   }
 }
@@ -98,9 +98,9 @@ function dkan_datastore_api_datastore_rows($resource_id = NULL) {
 /**
  * Callback for the datastore-file-update command
  */
-function dkan_datastore_api_datastore_file_update($resource_id = NULL, $file = NULL) {
+function dkan_datastore_api_datastore_file_update($id = NULL, $file = NULL) {
   
-  if ($datastore = get_datastore($resource_id)) {
+  if ($datastore = get_datastore($id)) {
     // IMPROVEMENT: Add option truncate
     // IMPROVEMENT: Add option keep_prev_file
     $datastore->updateByFile($file);
@@ -110,9 +110,9 @@ function dkan_datastore_api_datastore_file_update($resource_id = NULL, $file = N
 /**
  * Callback for the datastore-file-delete command
  */
-function dkan_datastore_api_datastore_file_delete($resource_id = NULL) {
+function dkan_datastore_api_datastore_file_delete($id = NULL) {
   
-  if ($datastore = get_datastore($resource_id)) {
+  if ($datastore = get_datastore($id)) {
     $datastore->deleteFile();
   }
 }
@@ -120,9 +120,9 @@ function dkan_datastore_api_datastore_file_delete($resource_id = NULL) {
 /**
  * Callback for the datastore-file-uri command
  */
-function dkan_datastore_api_datastore_file_uri($resource_id = NULL) {
+function dkan_datastore_api_datastore_file_uri($id = NULL) {
   
-  if ($datastore = get_datastore($resource_id)) {  
+  if ($datastore = get_datastore($id)) {  
     drupal_set_message('The URI of the file in the datastore is: ' . $datastore->fileUri());
   }
 }
@@ -130,30 +130,30 @@ function dkan_datastore_api_datastore_file_uri($resource_id = NULL) {
 /**
  * Callback for the datastore-file-url command
  */
-function dkan_datastore_api_datastore_file_url($resource_id = NULL) {
+function dkan_datastore_api_datastore_file_url($id = NULL) {
   
-  if ($datastore = get_datastore($resource_id)) {  
+  if ($datastore = get_datastore($id)) {  
     drupal_set_message('The URL of the file in the datastore is: ' . $datastore->fileUrl());
   }
 }
 
 /*
- * Get the datastore asociated with a Resource with $resource_id
+ * Get datastore based on id
  */
-function get_datastore($resource_id) {
+function get_datastore($id) {
   
   // Show an error if the resource_id is not present
-  if (!$resource_id) {
-    drupal_set_message('No resource_id was provided.', 'error');
+  if (!$id) {
+    drupal_set_message('No datastore id was provided.', 'error');
     return false;
   }
   
   // Search for a datastore asociated with the resource
   try {
-    $datastore = dkan_datastore_go($resource_id);
+    $datastore = dkan_datastore_go($id);
     
   } catch (Exception $e) {
-    drupal_set_message('There are no datastores asociated with the resource_id.', 'error');
+    drupal_set_message('There are no datastores with that id.', 'error');
     return false;
   }
   
