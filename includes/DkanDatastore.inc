@@ -406,7 +406,7 @@ class DkanDatastore extends Datastore implements DatastoreForm {
   }
   
   /*
-   * 
+   * Update datastore with file
    */
   public function updateByFile($uri, $truncate = TRUE, $keep_prev_file = FALSE) {
     
@@ -458,9 +458,6 @@ class DkanDatastore extends Datastore implements DatastoreForm {
         // Set up importer
         $importer_id = $this->importerId;
         $source = feeds_source( $importer_id, $this->node->nid );
-        $parser = $source->importer->config['parser']['plugin_key'];
-        $processor = $source->importer->config['processor']['plugin_key'];
-
         $config = array(
           'process_in_background' => TRUE,
         );
@@ -476,7 +473,6 @@ class DkanDatastore extends Datastore implements DatastoreForm {
         
         // Import new items.
         while (FEEDS_BATCH_COMPLETE != $feed['source']->import());
-        
         drupal_set_message($source->itemCount() . ' items were imported.');
         
       } else {
@@ -487,5 +483,38 @@ class DkanDatastore extends Datastore implements DatastoreForm {
         drupal_set_message('The file could not be loaded.', 'error');
     }
   }
+  
+  /*
+   * Delete file from datastore
+   */
+  public function deleteFile() {
+    
+    // Get previous file
+    $prev_file = $this->file();
+    
+    if ($prev_file) {
+      
+      // If the datastore has items, delete them
+      if ($this->status() == DKAN_DATASTORE_EXISTS) {
+        // Set up source and importer
+        $importer_id = $this->importerId;
+        $source = feeds_source( $importer_id, $this->node->nid );
+        $config = array(
+          'process_in_background' => TRUE,
+        );
+        $source->importer->addConfig($config);    
+        $this->save();          
+        $feed = isset($this->feed) ? $this->feed : $this->feed($this->node);
+        // Delete items
+        while (FEEDS_BATCH_COMPLETE != $feed['source']->clear());
+      }           
+      
+      // Delete file
+      file_delete($prev_file, TRUE);
+      drupal_set_message('The file was deleted.');
+    } else {
+      drupal_set_message('The datastore has no files.');
+    }
+  }  
   
 }  

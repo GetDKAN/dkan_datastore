@@ -113,7 +113,7 @@ function dkan_datastore_api_datastore_file_update($resource_id = NULL, $file = N
 function dkan_datastore_api_datastore_file_delete($resource_id = NULL) {
   
   if ($datastore = get_datastore($resource_id)) {
-    drupal_set_message('The command is not implemented yet.');
+    $datastore->deleteFile();
   }
 }
 
