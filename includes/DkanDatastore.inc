@@ -404,5 +404,88 @@ class DkanDatastore extends Datastore implements DatastoreForm {
     $feed = isset($this->feed) ? $this->feed : $this->feed($this->node);
     $feed['source']->startImport();
   }
+  
+  /*
+   * 
+   */
+  public function updateByFile($uri, $truncate = TRUE, $keep_prev_file = FALSE) {
+    
+    // IMPROVEMENT: Check if there is a better way to upload files.
+    // IMPROVEMENT: Allow configuration of Views ( Map, Grid, Graph ).
+    // IMPROVEMENT: Allow configuration of parser.
+    // IMPROVEMENT: Allow configuration of processor.
+    // IMPROVEMENT: Allow append instead of truncate.
+    
+    try {
+      
+      // Get previous file
+      $prev_file = $this->file();
+      
+      // Load and save new file.
+      $handle = fopen($uri, 'r');
+      $new_file = file_save_data($handle, 'public://' . drupal_basename($uri));
+      fclose($handle);
+      
+      if ($new_file) {
+        
+        // Set default settings
+        $new_file->status = FILE_STATUS_PERMANENT;
+        $new_file->display = 1;
+        $new_file->description = '';
+        $new_file->map = 1;
+        $new_file->grid = 1;
+        $new_file->graph = 1;
+        
+        if ($prev_file) {
+          
+          // Copy view settings
+          $new_file->map = $prev_file->map;
+          $new_file->grid = $prev_file->grid;
+          $new_file->graph = $prev_file->graph;
+          
+          if (!$keep_prev_file) {
+            // Delete prev file
+            file_delete($prev_file, TRUE);
+            drupal_set_message('The previous file was deleted.');
+          }
+        }
+        
+        // Save new file
+        file_save($new_file);
+        $this->node->field_upload = array(LANGUAGE_NONE => array((array) $new_file));       
+        node_save( $this->node); 
+        
+        // Set up importer
+        $importer_id = $this->importerId;
+        $source = feeds_source( $importer_id, $this->node->nid );
+        $parser = $source->importer->config['parser']['plugin_key'];
+        $processor = $source->importer->config['processor']['plugin_key'];
 
-}
+        $config = array(
+          'process_in_background' => TRUE,
+        );
+        $source->importer->addConfig($config);    
+        $this->save();
+        
+        $feed = isset($this->feed) ? $this->feed : $this->feed($this->node);
+        
+        // If the datastore has items, delete them first.
+        if ($this->status() == DKAN_DATASTORE_EXISTS) {
+          while (FEEDS_BATCH_COMPLETE != $feed['source']->clear());
+        }        
+        
+        // Import new items.
+        while (FEEDS_BATCH_COMPLETE != $feed['source']->import());
+        
+        drupal_set_message($source->itemCount() . ' items were imported.');
+        
+      } else {
+        drupal_set_message('The file could not be loaded.', 'error');
+      }
+      
+    } catch (Exception $e) {
+        drupal_set_message('The file could not be loaded.', 'error');
+    }
+  }
+  
+}  
