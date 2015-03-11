@@ -1,10 +1,14 @@
 <?php
 
+
 /**
  * @file
  * DKAN Datatore implementation of Datastore class.
  */
 
+/**
+ * Class for DKAN Datastores.
+ */
 class DkanDatastore extends Datastore implements DatastoreForm {
 
   public $endpoint = 'api/action/datastore/search.json';
@@ -114,7 +118,11 @@ class DkanDatastore extends Datastore implements DatastoreForm {
    */
   public function apiUri() {
     return url($this->endpoint, array(
-      'query' => array('resource_id' => $this->uuid, 'limit' => 5), 'absolute' => TRUE));
+      'query' => array(
+        'resource_id' => $this->uuid,
+        'limit' => 5),
+      'absolute' => TRUE,
+    ));
   }
 
   /**
@@ -404,128 +412,134 @@ class DkanDatastore extends Datastore implements DatastoreForm {
     $feed = isset($this->feed) ? $this->feed : $this->feed($this->node);
     $feed['source']->startImport();
   }
-  
-  /*
-   * Update datastore with file
+
+  /**
+   * Update datastore with file.
    */
   public function updateByFile($uri, $truncate = TRUE) {
-    
+
     // IMPROVEMENT: Check if there is a better way to upload files.
     // IMPROVEMENT: Allow configuration of Views ( Map, Grid, Graph ).
     // IMPROVEMENT: Allow append instead of truncate.
-    
     try {
-      // Get current file
+      // Get current file.
       $current_file = $this->file();
-      
+
       // Save new file.
       $new_file = file_get_contents($uri);
       $new_file = file_save_data($new_file, 'public://' . drupal_basename($uri));
-      
+
       if ($new_file) {
-        // Set default settings
+        // Set default settings.
         $new_file->status = FILE_STATUS_PERMANENT;
         $new_file->display = 1;
         $new_file->description = '';
         $new_file->map = 1;
         $new_file->grid = 1;
         $new_file->graph = 1;
-        
+
         if ($current_file) {
-          // Copy view settings from current file
+          // Copy view settings from current file.
           $new_file->map = $current_file->map;
           $new_file->grid = $current_file->grid;
           $new_file->graph = $current_file->graph;
-          // Delete current file
-          $this->deleteFile();         
+          // Delete current file.
+          $this->deleteFile();
         }
-        
-        // Save new file
+
+        // Save new file.
         file_save($new_file);
-        $this->node->field_upload = array(LANGUAGE_NONE => array((array) $new_file));       
-        node_save( $this->node); 
+        $this->node->field_upload = array(LANGUAGE_NONE => array((array) $new_file));
+        node_save($this->node);
         drupal_set_message(t('The new file has been saved.'));
-        
-        // Add importer if not present
-        if ( !$this->importerId ) {
+
+        // Add importer if not present.
+        if (!$this->importerId) {
           feeds_node_insert($this->node);
           $this->importerId = $this->importerId();
           $this->source = $this->source();
-          $this->importer = $this->importer();        
-        }        
-        
-        // Set up importer
-        $source = $this->setUpSource();      
+          $this->importer = $this->importer();
+        }
+
+        // Set up importer.
+        $source = $this->setUpSource();
         // Import new items.
-        while (FEEDS_BATCH_COMPLETE != $source->import());
-        drupal_set_message($source->itemCount() . t(' items were imported.'));
-        
-      } else {
+        while (FEEDS_BATCH_COMPLETE != $source->import()) {
+          continue;
+        };
+        drupal_set_message($source->itemCount() . ' ' . t('items were imported.'));
+
+      }
+      else {
         drupal_set_message(t('The file could not be loaded.'), 'error');
       }
-      
-    } catch (Exception $e) {
-        drupal_set_message(t('The file could not be loaded.'), 'error');
+
+    }
+    catch (Exception $e) {
+      drupal_set_message(t('The file could not be loaded.'), 'error');
     }
   }
-  
-  /*
-   * Delete file from datastore
+
+  /**
+   * Delete file from datastore.
    */
   public function deleteFile() {
-    
-    // Get current file
+
+    // Get current file.
     $current_file = $this->file();
-    
+
     if ($current_file) {
-      // If the datastore has items, delete them
+      // If the datastore has items, delete them.
       $this->deleteItems();
-      // Delete file
+      // Delete file.
       file_delete($current_file, TRUE);
       drupal_set_message(t('The current file has been deleted.'));
-    } else {
+    }
+    else {
       drupal_set_message(t('No file was present on the datastore.'));
     }
-  }  
-  
-  /*
-   * Delete file from datastore
+  }
+
+  /**
+   * Delete file from datastore.
    */
   public function createByFile($uri) {
 
     $this->updateByFile($uri);
-    
-    drupal_set_message(t('The Id of the new datastore is: ') . $this->uuid);
-  }    
-  
-  /*
-   * Set up of source and importer for background operations
+
+    drupal_set_message(t('The Id of the new datastore is:') . ' ' . $this->uuid);
+  }
+
+  /**
+   * Set up of source and importer for background operations.
    */
   protected function setUpSource() {
     // IMPROVEMENT: Allow configuration of parser.
-    // IMPROVEMENT: Allow configuration of processor.    
+    // IMPROVEMENT: Allow configuration of processor.
     $source = feeds_source($this->importerId, $this->node->nid);
     $config = array(
       'process_in_background' => TRUE,
     );
-    $source->importer->addConfig($config);    
-    $this->save();          
-    $feed = isset($this->feed) ? $this->feed : $this->feed($this->node);  
-    
+    $source->importer->addConfig($config);
+    $this->save();
+    $feed = isset($this->feed) ? $this->feed : $this->feed($this->node);
+
     return $feed['source'];
   }
-  
-  /*
-   * 
+
+  /**
+   * Delete items in datastore.
    */
   protected function deleteItems() {
-    // If the datastore has items, delete them
+    // If the datastore has items, delete them.
     if ($this->status() == DKAN_DATASTORE_EXISTS) {
-      // Set up source and importer
+      // Set up source and importer.
       $source = $this->setUpSource();
-      // Delete items
-      while (FEEDS_BATCH_COMPLETE != $source->clear());
-    }               
-  }  
-  
-}  
+      // Delete items.
+      while (FEEDS_BATCH_COMPLETE != $source->clear()) {
+        continue;
+      };
+    }
+  }
+
+}
