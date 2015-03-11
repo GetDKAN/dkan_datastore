@@ -418,10 +418,9 @@ class DkanDatastore extends Datastore implements DatastoreForm {
       // Get current file
       $current_file = $this->file();
       
-      // Load and save new file.
-      $handle = fopen($uri, 'r');
-      $new_file = file_save_data($handle, 'public://' . drupal_basename($uri));
-      fclose($handle);     
+      // Save new file.
+      $new_file = file_get_contents($uri);
+      $new_file = file_save_data($new_file, 'public://' . drupal_basename($uri));
       
       if ($new_file) {
         // Set default settings
