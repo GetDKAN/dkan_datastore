@@ -140,10 +140,10 @@ function dkan_datastore_api_datastore_file_url($resource_id = NULL) {
 /*
  * Get the datastore asociated with a Resource with $resource_id
  */
-function get_datastore( $resource_id ) {
+function get_datastore($resource_id) {
   
   // Show an error if the resource_id is not present
-  if ( !$resource_id ) {
+  if (!$resource_id) {
     drupal_set_message('No resource_id was provided.', 'error');
     return false;
   }
@@ -153,7 +153,7 @@ function get_datastore( $resource_id ) {
     $datastore = dkan_datastore_go($resource_id);
     
   } catch (Exception $e) {
-    drupal_set_message('The resource_id was not found.', 'error');
+    drupal_set_message('There are no datastores asociated with the resource_id.', 'error');
     return false;
   }
   
