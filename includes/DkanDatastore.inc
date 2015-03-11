@@ -408,7 +408,7 @@ class DkanDatastore extends Datastore implements DatastoreForm {
   /*
    * Update datastore with file
    */
-  public function updateByFile($uri, $truncate = TRUE, $keep_prev_file = FALSE) {
+  public function updateByFile($uri, $truncate = TRUE) {
     
     // IMPROVEMENT: Check if there is a better way to upload files.
     // IMPROVEMENT: Allow configuration of Views ( Map, Grid, Graph ).
@@ -417,17 +417,15 @@ class DkanDatastore extends Datastore implements DatastoreForm {
     // IMPROVEMENT: Allow append instead of truncate.
     
     try {
-      
-      // Get previous file
-      $prev_file = $this->file();
+      // Get current file
+      $current_file = $this->file();
       
       // Load and save new file.
       $handle = fopen($uri, 'r');
       $new_file = file_save_data($handle, 'public://' . drupal_basename($uri));
-      fclose($handle);
+      fclose($handle);     
       
       if ($new_file) {
-        
         // Set default settings
         $new_file->status = FILE_STATUS_PERMANENT;
         $new_file->display = 1;
@@ -436,43 +434,25 @@ class DkanDatastore extends Datastore implements DatastoreForm {
         $new_file->grid = 1;
         $new_file->graph = 1;
         
-        if ($prev_file) {
-          
-          // Copy view settings
-          $new_file->map = $prev_file->map;
-          $new_file->grid = $prev_file->grid;
-          $new_file->graph = $prev_file->graph;
-          
-          if (!$keep_prev_file) {
-            // Delete prev file
-            file_delete($prev_file, TRUE);
-            drupal_set_message('The previous file was deleted.');
-          }
+        if ($current_file) {
+          // Copy view settings from current file
+          $new_file->map = $current_file->map;
+          $new_file->grid = $current_file->grid;
+          $new_file->graph = $current_file->graph;
+          // Delete current file
+          $this->deleteFile();         
         }
         
         // Save new file
         file_save($new_file);
         $this->node->field_upload = array(LANGUAGE_NONE => array((array) $new_file));       
         node_save( $this->node); 
+        drupal_set_message('The new file has been saved.');
         
         // Set up importer
-        $importer_id = $this->importerId;
-        $source = feeds_source( $importer_id, $this->node->nid );
-        $config = array(
-          'process_in_background' => TRUE,
-        );
-        $source->importer->addConfig($config);    
-        $this->save();
-        
-        $feed = isset($this->feed) ? $this->feed : $this->feed($this->node);
-        
-        // If the datastore has items, delete them first.
-        if ($this->status() == DKAN_DATASTORE_EXISTS) {
-          while (FEEDS_BATCH_COMPLETE != $feed['source']->clear());
-        }        
-        
+        $source = $this->setUpSource();      
         // Import new items.
-        while (FEEDS_BATCH_COMPLETE != $feed['source']->import());
+        while (FEEDS_BATCH_COMPLETE != $source->import());
         drupal_set_message($source->itemCount() . ' items were imported.');
         
       } else {
@@ -489,32 +469,47 @@ class DkanDatastore extends Datastore implements DatastoreForm {
    */
   public function deleteFile() {
     
-    // Get previous file
-    $prev_file = $this->file();
+    // Get current file
+    $current_file = $this->file();
     
-    if ($prev_file) {
-      
+    if ($current_file) {
       // If the datastore has items, delete them
-      if ($this->status() == DKAN_DATASTORE_EXISTS) {
-        // Set up source and importer
-        $importer_id = $this->importerId;
-        $source = feeds_source( $importer_id, $this->node->nid );
-        $config = array(
-          'process_in_background' => TRUE,
-        );
-        $source->importer->addConfig($config);    
-        $this->save();          
-        $feed = isset($this->feed) ? $this->feed : $this->feed($this->node);
-        // Delete items
-        while (FEEDS_BATCH_COMPLETE != $feed['source']->clear());
-      }           
-      
+      $this->deleteItems();
       // Delete file
-      file_delete($prev_file, TRUE);
-      drupal_set_message('The file was deleted.');
+      file_delete($current_file, TRUE);
+      drupal_set_message('The current file has been deleted.');
     } else {
-      drupal_set_message('The datastore has no files.');
+      drupal_set_message('No file was present on the datastore.');
     }
+  }  
+  
+  /*
+   * 
+   */
+  protected function setUpSource() {
+    $importer_id = $this->importerId;
+    $source = feeds_source( $importer_id, $this->node->nid );
+    $config = array(
+      'process_in_background' => TRUE,
+    );
+    $source->importer->addConfig($config);    
+    $this->save();          
+    $feed = isset($this->feed) ? $this->feed : $this->feed($this->node);  
+    
+    return $feed['source'];
+  }
+  
+  /*
+   * 
+   */
+  protected function deleteItems() {
+    // If the datastore has items, delete them
+    if ($this->status() == DKAN_DATASTORE_EXISTS) {
+      // Set up source and importer
+      $source = $this->setUpSource();
+      // Delete items
+      while (FEEDS_BATCH_COMPLETE != $source->clear());
+    }               
   }  
   
 }  
