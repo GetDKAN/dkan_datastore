@@ -46,7 +46,7 @@ abstract class Datastore {
     }
     return $nodes[$uuid];
   }
-
+  
   /**
    * Gets nid using uuid.
    */
@@ -68,8 +68,21 @@ abstract class Datastore {
   public static function instance($class, $id) {
     // This is useful at least as long as we're developing.
     if (empty($id)) {
-      throw new Exception(t('Empty configuration identifier.'));
-    }
+      // Create an empty resource
+      $resource = new stdClass();
+      $resource->title = t('Automatically created by datastore');
+      $resource->type = 'resource';
+      $resource->language = LANGUAGE_NONE;
+      $resource->status = '1';
+      $resource->promote = '0';
+      $resource->sticky = '0';      
+      $resource->comment = '0';
+      $resource->translate = '0';      
+      node_save($resource);    
+
+      $id = $resource->uuid;
+    } 
+    
     static $instances = array();
     if (!isset($instances[$class][$id])) {
       $instances[$class][$id] = new $class($id);
@@ -131,7 +144,7 @@ abstract class Datastore {
   /**
    * Updates the datastore with file.
    */
-  public function updateByFile($uri, $truncate = TRUE, $keep_prev_file = FALSE) {
+  public function updateByFile($uri, $truncate = TRUE) {
     
   }
   

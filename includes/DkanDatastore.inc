@@ -412,8 +412,6 @@ class DkanDatastore extends Datastore implements DatastoreForm {
     
     // IMPROVEMENT: Check if there is a better way to upload files.
     // IMPROVEMENT: Allow configuration of Views ( Map, Grid, Graph ).
-    // IMPROVEMENT: Allow configuration of parser.
-    // IMPROVEMENT: Allow configuration of processor.
     // IMPROVEMENT: Allow append instead of truncate.
     
     try {
@@ -447,20 +445,28 @@ class DkanDatastore extends Datastore implements DatastoreForm {
         file_save($new_file);
         $this->node->field_upload = array(LANGUAGE_NONE => array((array) $new_file));       
         node_save( $this->node); 
-        drupal_set_message('The new file has been saved.');
+        drupal_set_message(t('The new file has been saved.'));
+        
+        // Add importer if not present
+        if ( !$this->importerId ) {
+          feeds_node_insert($this->node);
+          $this->importerId = $this->importerId();
+          $this->source = $this->source();
+          $this->importer = $this->importer();        
+        }        
         
         // Set up importer
         $source = $this->setUpSource();      
         // Import new items.
         while (FEEDS_BATCH_COMPLETE != $source->import());
-        drupal_set_message($source->itemCount() . ' items were imported.');
+        drupal_set_message($source->itemCount() . t(' items were imported.'));
         
       } else {
-        drupal_set_message('The file could not be loaded.', 'error');
+        drupal_set_message(t('The file could not be loaded.'), 'error');
       }
       
     } catch (Exception $e) {
-        drupal_set_message('The file could not be loaded.', 'error');
+        drupal_set_message(t('The file could not be loaded.'), 'error');
     }
   }
   
@@ -477,18 +483,29 @@ class DkanDatastore extends Datastore implements DatastoreForm {
       $this->deleteItems();
       // Delete file
       file_delete($current_file, TRUE);
-      drupal_set_message('The current file has been deleted.');
+      drupal_set_message(t('The current file has been deleted.'));
     } else {
-      drupal_set_message('No file was present on the datastore.');
+      drupal_set_message(t('No file was present on the datastore.'));
     }
   }  
   
   /*
-   * 
+   * Delete file from datastore
+   */
+  public function createByFile($uri) {
+
+    $this->updateByFile($uri);
+    
+    drupal_set_message(t('The Id of the new datastore is: ') . $this->uuid);
+  }    
+  
+  /*
+   * Set up of source and importer for background operations
    */
   protected function setUpSource() {
-    $importer_id = $this->importerId;
-    $source = feeds_source( $importer_id, $this->node->nid );
+    // IMPROVEMENT: Allow configuration of parser.
+    // IMPROVEMENT: Allow configuration of processor.    
+    $source = feeds_source($this->importerId, $this->node->nid);
     $config = array(
       'process_in_background' => TRUE,
     );

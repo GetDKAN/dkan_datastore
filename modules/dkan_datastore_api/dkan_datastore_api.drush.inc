@@ -132,8 +132,8 @@ function dkan_datastore_api_datastore_create($file = NULL) {
     return;
   }  
   
-  if ($datastore = get_datastore($id)) {
-    drupal_set_message('The command is not implemented yet.');
+  if ($datastore = dkan_datastore_go()) {
+    $datastore->createByFile($file);
   }
 }
 
