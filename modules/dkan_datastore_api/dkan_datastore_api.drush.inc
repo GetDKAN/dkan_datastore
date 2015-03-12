@@ -97,7 +97,7 @@ function dkan_datastore_api_drush_command() {
 function dkan_datastore_api_datastore_drop($id = NULL) {
 
   if ($datastore = get_datastore($id)) {
-    drupal_set_message('The command is not implemented yet.');
+    drush_log('The command is not implemented yet.');
   }
 }
 
@@ -107,7 +107,7 @@ function dkan_datastore_api_datastore_drop($id = NULL) {
 function dkan_datastore_api_datastore_rows($id = NULL) {
 
   if ($datastore = get_datastore($id)) {
-    drupal_set_message('The command is not implemented yet.');
+    drush_log('The command is not implemented yet.');
   }
 }
 
@@ -117,7 +117,7 @@ function dkan_datastore_api_datastore_rows($id = NULL) {
 function dkan_datastore_api_datastore_update($id = NULL, $file = NULL) {
 
   if (!$file) {
-    drupal_set_message('No file was provided.', 'error');
+    drush_log('No file was provided.', 'error');
     return;
   }
 
@@ -133,7 +133,7 @@ function dkan_datastore_api_datastore_update($id = NULL, $file = NULL) {
 function dkan_datastore_api_datastore_create($file = NULL) {
 
   if (!$file) {
-    drupal_set_message('No file was provided.', 'error');
+    drush_log('No file was provided.', 'error');
     return;
   }
 
@@ -160,10 +160,10 @@ function dkan_datastore_api_datastore_file_uri($id = NULL) {
   if ($datastore = get_datastore($id)) {
 
     if ($datastore->file()) {
-      drupal_set_message('The URI of the file in the datastore is: ' . $datastore->fileUri());
+      drush_log('The URI of the file in the datastore is: ' . $datastore->fileUri());
     }
     else {
-      drupal_set_message('The datastore has no file.');
+      drush_log('The datastore has no file.');
     }
 
   }
@@ -178,10 +178,10 @@ function dkan_datastore_api_datastore_file_url($id = NULL) {
   if ($datastore = get_datastore($id)) {
 
     if ($datastore->file()) {
-      drupal_set_message('The URL of the file in the datastore is: ' . $datastore->fileUrl());
+      drush_log('The URL of the file in the datastore is: ' . $datastore->fileUrl());
     }
     else {
-      drupal_set_message('The datastore has no file.');
+      drush_log('The datastore has no file.');
     }
   }
 }
@@ -193,7 +193,7 @@ function get_datastore($id) {
 
   // Show an error if the resource_id is not present.
   if (!$id) {
-    drupal_set_message('No datastore id was provided.', 'error');
+    drush_log('No datastore id was provided.', 'error');
     return FALSE;
   }
 
@@ -203,7 +203,7 @@ function get_datastore($id) {
 
   }
   catch (Exception $e) {
-    drupal_set_message('There are no datastores with that id.', 'error');
+    drush_log('There are no datastores with that id.', 'error');
     return FALSE;
   }
 
