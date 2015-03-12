@@ -451,7 +451,6 @@ class DkanDatastore extends Datastore implements DatastoreForm {
         file_save($new_file);
         $this->node->field_upload = array(LANGUAGE_NONE => array((array) $new_file));
         node_save($this->node);
-        drupal_set_message(t('The new file has been saved.'));
 
         // Add importer if not present.
         if (!$this->importerId) {
@@ -467,16 +466,17 @@ class DkanDatastore extends Datastore implements DatastoreForm {
         while (FEEDS_BATCH_COMPLETE != $source->import()) {
           continue;
         };
-        drupal_set_message($source->itemCount() . ' ' . t('items were imported.'));
+
+        return TRUE;
 
       }
       else {
-        drupal_set_message(t('The file could not be loaded.'), 'error');
+        return FALSE;
       }
 
     }
     catch (Exception $e) {
-      drupal_set_message(t('The file could not be loaded.'), 'error');
+      return FALSE;
     }
   }
 
@@ -493,10 +493,10 @@ class DkanDatastore extends Datastore implements DatastoreForm {
       $this->deleteItems();
       // Delete file.
       file_delete($current_file, TRUE);
-      drupal_set_message(t('The current file has been deleted.'));
+      return TRUE;
     }
     else {
-      drupal_set_message(t('No file was present on the datastore.'));
+      return FALSE;
     }
   }
 
@@ -505,9 +505,7 @@ class DkanDatastore extends Datastore implements DatastoreForm {
    */
   public function createByFile($uri) {
 
-    $this->updateByFile($uri);
-
-    drupal_set_message(t('The Id of the new datastore is:') . ' ' . $this->uuid);
+    return $this->updateByFile($uri);
   }
 
   /**
