@@ -96,9 +96,7 @@ function dkan_datastore_api_drush_command() {
  */
 function dkan_datastore_api_datastore_drop($id = NULL) {
 
-  if ($datastore = get_datastore($id)) {
-    drupal_set_message('The command is not implemented yet.');
-  }
+  drush_print('The command is not implemented yet.');
 }
 
 /**
@@ -106,9 +104,7 @@ function dkan_datastore_api_datastore_drop($id = NULL) {
  */
 function dkan_datastore_api_datastore_rows($id = NULL) {
 
-  if ($datastore = get_datastore($id)) {
-    drupal_set_message('The command is not implemented yet.');
-  }
+  drush_print('The command is not implemented yet.');
 }
 
 /**
@@ -117,13 +113,20 @@ function dkan_datastore_api_datastore_rows($id = NULL) {
 function dkan_datastore_api_datastore_update($id = NULL, $file = NULL) {
 
   if (!$file) {
-    drupal_set_message('No file was provided.', 'error');
+    drush_print('No file was provided.');
     return;
   }
 
   if ($datastore = get_datastore($id)) {
     // IMPROVEMENT: Add option truncate.
-    $datastore->updateByFile($file);
+    $result = $datastore->updateByFile($file);
+
+    if ($result) {
+      drush_print('The new file has been saved and the items were imported.');
+    }
+    else {
+      drush_print('The file could not be loaded.');
+    }
   }
 }
 
@@ -133,12 +136,21 @@ function dkan_datastore_api_datastore_update($id = NULL, $file = NULL) {
 function dkan_datastore_api_datastore_create($file = NULL) {
 
   if (!$file) {
-    drupal_set_message('No file was provided.', 'error');
+    drush_print('No file was provided.');
     return;
   }
 
   if ($datastore = dkan_datastore_go()) {
-    $datastore->createByFile($file);
+
+    $result = $datastore->createByFile($file);
+
+    if ($result) {
+      drush_print('The new file has been saved and the items were imported.');
+      drush_print('A new datastore was created with ID: ' . $datastore->node->uuid);
+    }
+    else {
+      drush_print('The file could not be loaded.');
+    }
   }
 }
 
@@ -148,7 +160,14 @@ function dkan_datastore_api_datastore_create($file = NULL) {
 function dkan_datastore_api_datastore_file_delete($id = NULL) {
 
   if ($datastore = get_datastore($id)) {
-    $datastore->deleteFile();
+    $result = $datastore->deleteFile();
+
+    if ($result) {
+      drush_print('The file has been deleted and the items were removed.');
+    }
+    else {
+      drush_print('The file could not be deleted.');
+    }
   }
 }
 
@@ -160,10 +179,10 @@ function dkan_datastore_api_datastore_file_uri($id = NULL) {
   if ($datastore = get_datastore($id)) {
 
     if ($datastore->file()) {
-      drupal_set_message('The URI of the file in the datastore is: ' . $datastore->fileUri());
+      drush_print('The URI of the file in the datastore is: ' . $datastore->fileUri());
     }
     else {
-      drupal_set_message('The datastore has no file.');
+      drush_print('The datastore has no file.');
     }
 
   }
@@ -178,10 +197,10 @@ function dkan_datastore_api_datastore_file_url($id = NULL) {
   if ($datastore = get_datastore($id)) {
 
     if ($datastore->file()) {
-      drupal_set_message('The URL of the file in the datastore is: ' . $datastore->fileUrl());
+      drush_print('The URL of the file in the datastore is: ' . $datastore->fileUrl());
     }
     else {
-      drupal_set_message('The datastore has no file.');
+      drush_print('The datastore has no file.');
     }
   }
 }
@@ -193,7 +212,7 @@ function get_datastore($id) {
 
   // Show an error if the resource_id is not present.
   if (!$id) {
-    drupal_set_message('No datastore id was provided.', 'error');
+    drush_print('No datastore id was provided.');
     return FALSE;
   }
 
@@ -203,7 +222,7 @@ function get_datastore($id) {
 
   }
   catch (Exception $e) {
-    drupal_set_message('There are no datastores with that id.', 'error');
+    drush_print('There are no datastores with the specified id.');
     return FALSE;
   }
 
