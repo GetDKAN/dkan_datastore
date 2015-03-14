@@ -241,7 +241,7 @@ function dkan_datastore_node_update($node) {
     // See if we have a file link or upload.
     $wrapper = entity_metadata_wrapper('node', $node);
     $file = $wrapper->{$file_field}->value();
-    if (!$file && $wrapper->__isset("field_link_remote_file")) {
+    if (!$file) {
       $link = $wrapper->{$link_field}->value();
       if (isset($link) && isset($link['fid'])) {
         $file = file_load($link['fid']);

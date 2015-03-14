@@ -80,6 +80,35 @@ Now "article" nodes will have "Manage Datastore" and "Data API" tabs. CSV files 
 
 ## Adding new Datastores
 
+## Managing datastores with Drush
+
+The DKAN Datastore API module provides the functionality needed to manage the
+datastores using Drush. The available commands are:
+
+### To create a datastore from a local file:
+
+```bash
+drush dsc (path-to-local-file)
+```
+
+### To update a datastore from a local file:
+
+```bash
+drush dsu (datastore-id) (path-to-local-file)
+```
+
+### To delete a datastore file (imported items will be deleted as well):
+
+```bash
+drush dsfd (datastore-id)
+```
+
+### To get the URI of the datastore file:
+
+```bash
+drush dsfuri (datastore-id)
+```
+
 ## Contributing
 
 We are accepting issues in the dkan issue thread only -> https://github.com/NuCivic/dkan/issues -> Please label your issue as **"component: dkan_datastore"** after submitting so we can identify problems and feature requests faster.
