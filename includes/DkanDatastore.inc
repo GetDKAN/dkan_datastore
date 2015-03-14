@@ -117,7 +117,11 @@ class DkanDatastore extends Datastore implements DatastoreForm {
    */
   public function apiUri() {
     return url($this->endpoint, array(
-      'query' => array('resource_id' => $this->uuid, 'limit' => 5), 'absolute' => TRUE));
+      'query' => array(
+        'resource_id' => $this->uuid,
+        'limit' => 5),
+      'absolute' => TRUE,
+    ));
   }
 
   /**
@@ -580,4 +584,5 @@ class DkanDatastore extends Datastore implements DatastoreForm {
 
     return $num_deleted;
   }
+
 }
