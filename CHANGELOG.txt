@@ -1,3 +1,9 @@
+7.x-1.8  2015-04-02
+--------------------------
+ - Adding CRUD functions to Datastore.inc class
+ - Adding drush interface to CRUD functions in order to create instances from the cli
+ 
+
 
 
 7.x-1.7  2015-02-20
