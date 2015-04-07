@@ -117,7 +117,11 @@ class DkanDatastore extends Datastore implements DatastoreForm {
    */
   public function apiUri() {
     return url($this->endpoint, array(
-      'query' => array('resource_id' => $this->uuid, 'limit' => 5), 'absolute' => TRUE));
+      'query' => array(
+        'resource_id' => $this->uuid,
+        'limit' => 5),
+      'absolute' => TRUE,
+    ));
   }
 
   /**
@@ -410,18 +414,27 @@ class DkanDatastore extends Datastore implements DatastoreForm {
   /**
    * Update datastore with file.
    */
-  public function updateByFile($uri, $truncate = TRUE) {
+  public function updateByFile($uri = '', $copy_file = TRUE, $truncate = TRUE) {
 
-    // IMPROVEMENT: Check if there is a better way to upload files.
-    // IMPROVEMENT: Allow configuration of Views ( Map, Grid, Graph ).
-    // IMPROVEMENT: Allow append instead of truncate.
+    if (!$uri) {
+      return FALSE;
+    }
+
     try {
       // Get current file.
       $current_file = $this->file();
 
-      // Save new file.
-      $new_file = file_get_contents($uri);
-      $new_file = file_save_data($new_file, 'public://' . drupal_basename($uri));
+      $new_file = array();
+      if ($copy_file) {
+        // Save new file.
+        $new_file = file_get_contents($uri);
+        $new_file = file_save_data($new_file, 'public://' . drupal_basename($uri));
+      }
+      else {
+        // The file exists.
+        $fid = db_query('SELECT fid FROM {file_managed} WHERE uri = :uri', array(':uri' => $uri))->fetchField();;
+        $new_file = file_load($fid);
+      }
 
       if ($new_file) {
         // Set default settings.
@@ -434,16 +447,24 @@ class DkanDatastore extends Datastore implements DatastoreForm {
 
         if ($current_file) {
           // Copy view settings from current file.
-          $new_file->map = $current_file->map;
-          $new_file->grid = $current_file->grid;
-          $new_file->graph = $current_file->graph;
+          if (isset($current_file->map)) {
+            $new_file->map = $current_file->map;
+          }
+          if (isset($current_file->grid)) {
+            $new_file->grid = $current_file->grid;
+          }
+          if (isset($current_file->graph)) {
+            $new_file->graph = $current_file->graph;
+          }
           // Delete current file.
           $this->deleteFile();
         }
 
         // Save new file.
         file_save($new_file);
-        $this->node->field_upload = array(LANGUAGE_NONE => array((array) $new_file));
+
+        $file_field = dkan_datastore_file_upload_field();
+        $this->node->{$file_field} = array(LANGUAGE_NONE => array((array) $new_file));
         node_save($this->node);
 
         // Add importer if not present.
@@ -497,9 +518,14 @@ class DkanDatastore extends Datastore implements DatastoreForm {
   /**
    * Delete file from datastore.
    */
-  public function createByFile($uri) {
+  public function createByFile($uri = '', $copy_file = TRUE) {
 
-    return $this->updateByFile($uri);
+    if ($uri) {
+      return $this->updateByFile($uri, $copy_file);
+    }
+    else {
+      return FALSE;
+    }
   }
 
   /**
@@ -509,6 +535,12 @@ class DkanDatastore extends Datastore implements DatastoreForm {
     // IMPROVEMENT: Allow configuration of parser.
     // IMPROVEMENT: Allow configuration of processor.
     $source = feeds_source($this->importerId, $this->node->nid);
+    // Code added to fix this issue: https://www.drupal.org/node/2087091
+    // The feeds source does not get cleaned up properly.
+    // Ask it for its states so they are all present.
+    $source->state(FEEDS_FETCH);
+    $source->state(FEEDS_PROCESS);
+    $source->state(FEEDS_PROCESS_CLEAR);
     $config = array(
       'process_in_background' => TRUE,
     );
@@ -566,7 +598,6 @@ class DkanDatastore extends Datastore implements DatastoreForm {
    *
    * @param string $field
    *   Database field to use for condition value.
-   *
    * @param string $value
    *   Condition value from which to delete.
    *
@@ -580,4 +611,5 @@ class DkanDatastore extends Datastore implements DatastoreForm {
 
     return $num_deleted;
   }
+
 }

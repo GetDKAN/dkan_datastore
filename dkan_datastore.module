@@ -422,17 +422,17 @@ function theme_dkan_datastore_status_formatter($variables) {
   return '<span class="circle na">' . t('Correct file type not attached to resource') . '</span>';
 }
 
- /**
-  * Gets a datastore instance.
-  *
-  * @param string $id
-  *   The unique id of the importer object.
-  *
-  * @return Datastore
-  *   A Datastore object or an object of a class defined by the Drupal
-  *   variable 'dkan_datastore_class'. There is only one importer object
-  *   per $id system-wide.
-  */
+/**
+ * Gets a datastore instance.
+ *
+ * @param string $id
+ *   The unique id of the importer object.
+ *
+ * @return Datastore
+ *   A Datastore object or an object of a class defined by the Drupal
+ *   variable 'dkan_datastore_class'. There is only one importer object
+ *   per $id system-wide.
+ */
 function dkan_datastore_go($id = NULL, $class = NULL) {
   if (!$class) {
     $class = variable_get('dkan_datastore_class', 'DkanDatastore');
