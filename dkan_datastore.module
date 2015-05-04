@@ -155,10 +155,10 @@ function dkan_datastore_datastore_api_access($resource) {
   $upload = '';
   $link = '';
   if (isset($node->$file_field) && $node->$file_field) {
-    $upload = isset($node->{$file_field}[$node->language]) ? $node->{$file_field}[$node->language] : $node->{$file_field}['und'];
+    $upload = isset($node->{$file_field}[$node->language]) ? $node->{$file_field}[$node->language] : $node->{$file_field}[LANGUAGE_NONE];
   }
   if (isset($node->{$link_field}) && $node->{$link_field}) {
-    $link = isset($node->{$link_field}[$node->language]) ? $node->{$link_field}[$node->language] : $node->{$link_field}['und'];
+    $link = isset($node->{$link_field}[$node->language]) ? $node->{$link_field}[$node->language] : $node->{$link_field}[LANGUAGE_NONE];
   }
   if ($node->type == $type && ($upload || $link)) {
     return node_access('view', $node);
@@ -178,10 +178,10 @@ function dkan_datastore_download_access($node) {
   $link_field = dkan_datastore_file_link_field();
   $type = dkan_datastore_node_type();
   if (isset($node->$file_field) && $node->$file_field) {
-    $upload = isset($node->{$file_field}[$node->language]) ? $node->{$file_field}[$node->language] : $node->{$file_field}['und'];
+    $upload = isset($node->{$file_field}[$node->language]) ? $node->{$file_field}[$node->language] : $node->{$file_field}[LANGUAGE_NONE];
   }
   if (isset($node->$link_field) && $node->$link_field) {
-    $link = isset($node->{$link_field}[$node->language]) ? $node->{$link_field}[$node->language] : $node->{$link_field}['und'];
+    $link = isset($node->{$link_field}[$node->language]) ? $node->{$link_field}[$node->language] : $node->{$link_field}[LANGUAGE_NONE];
   }
   if ($node->type == $type && ($upload || $link)) {
     return node_access('view', $node);
