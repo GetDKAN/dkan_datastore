@@ -20,8 +20,9 @@ function dkan_datastore_datastore_api($node) {
 function dkan_datastore_download($node) {
   $node_wrapper = entity_metadata_wrapper('node', $node);
   $file_field = dkan_datastore_file_upload_field();
-  $link_field = dkan_datastore_file_link_field();
-  if ($file = $node_wrapper->{$file_field}->value()) {
+  $type = dkan_datastore_node_type();
+
+  if ($node->type == $type && $file = $node_wrapper->{$file_field}->value()) {
     $uri = isset($file->uri) ? $file->uri : $file['uri'];
     $url = file_create_url($uri);
     return drupal_goto($url);
