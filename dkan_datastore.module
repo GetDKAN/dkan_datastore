@@ -21,7 +21,7 @@ function dkan_datastore_menu() {
     'title' => 'Download',
     'page callback' => 'dkan_datastore_download',
     'page arguments' => array(1),
-    'access callback' => 'node_access',
+    'access callback' => 'dkan_datastore_download_access',
     'access arguments' => array('view', 1),
     'file' => 'dkan_datastore.pages.inc',
     'weight' => '20',
@@ -142,6 +142,20 @@ function dkan_datastore_feeds_access($action, $node) {
     }
   }
   return FALSE;
+}
+
+/**
+ * Access callback for Download.
+ */
+function dkan_datastore_download_access($action, $resource) {
+  $type = dkan_datastore_node_type();
+  $node = is_object($resource) ? $resource : node_load($resource);
+
+  if ($node->type != $type) {
+    return FALSE;
+  }
+
+  return node_access('view', $node);
 }
 
 /**
