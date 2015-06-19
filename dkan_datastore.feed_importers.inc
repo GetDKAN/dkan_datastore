@@ -1,15 +1,27 @@
 <?php
 /**
  * @file
- * dkan_datastore.feeds_importer_default.inc
+ * dkan_datastore.feed_importers.inc
  */
 
 /**
- * Implements hook_feeds_importer_default().
+ * Saves Feed Importers.
+ * TODO: Subscribe these through a ctools plugin.
  */
-function dkan_datastore_feeds_importer_default() {
-  $export = array();
+function dkan_datastore_save_feed_importers() {
+  $feed_importers = dkan_datastore_feed_importers();
+  foreach ($feed_importers as $feed_importer) {
+    $importer = feeds_importer($feed_importer->id);
+    $importer->copy($feed_importer);
+    $importer->save();
+  }
+}
 
+/**
+ * Returns features like array for feed importer configuration.
+ */
+function dkan_datastore_feed_importers() {
+  $export = array();
   $feeds_importer = new stdClass();
   $feeds_importer->disabled = FALSE; /* Edit this to true to make a default feeds_importer disabled initially */
   $feeds_importer->api_version = 1;
@@ -20,7 +32,7 @@ function dkan_datastore_feeds_importer_default() {
     'fetcher' => array(
       'plugin_key' => 'FeedsFileFieldFetcher',
       'config' => array(
-        'file_field' => 'field_upload',
+        'file_field' => dkan_datastore_file_upload_field(),
       ),
     ),
     'parser' => array(
@@ -40,7 +52,7 @@ function dkan_datastore_feeds_importer_default() {
         'truncate' => 1,
       ),
     ),
-    'content_type' => 'resource',
+    'content_type' => dkan_datastore_node_type(),
     'weight' => '0',
     'update' => 0,
     'import_period' => '-1',
@@ -60,7 +72,7 @@ function dkan_datastore_feeds_importer_default() {
     'fetcher' => array(
       'plugin_key' => 'FeedsFileFieldFetcher',
       'config' => array(
-        'file_field' => 'field_link_remote_file',
+        'file_field' => dkan_datastore_file_link_field(),
       ),
     ),
     'parser' => array(
@@ -80,7 +92,7 @@ function dkan_datastore_feeds_importer_default() {
         'truncate' => 1,
       ),
     ),
-    'content_type' => 'resource',
+    'content_type' => dkan_datastore_node_type(),
     'weight' => '0',
     'update' => 0,
     'import_period' => '-1',

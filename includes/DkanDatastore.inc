@@ -312,6 +312,7 @@ class DkanDatastore extends Datastore implements DatastoreForm {
     $importer_ids = feeds_get_importer_ids($node->type);
     $tables_to_drop = array();
 
+
     foreach ($importer_ids as $importer_id) {
       $source = feeds_source($importer_id, $node->nid);
       $table_name = feeds_flatstore_processor_table_name($source->id, $source->feed_nid);

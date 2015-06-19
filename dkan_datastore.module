@@ -12,6 +12,7 @@ define('DKAN_DATASTORE_FILE_EXISTS', 2);
 define('DKAN_DATASTORE_WRONG_TYPE', 3);
 
 include_once "dkan_datastore.features.inc";
+include_once "dkan_datastore.feed_importers.inc";
 
 /**
  * Implements hook_menu().
@@ -112,6 +113,7 @@ function dkan_datastore_feeds_access($action, $node) {
     return TRUE;
   }
   if ($action != 'import') {
+
     if ($importer_ids = feeds_get_importer_ids($node->type, $node->nid)) {
       foreach ($importer_ids as $importer_id) {
         $source_config = feeds_source($importer_id, $node->nid);
