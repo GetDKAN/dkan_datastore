@@ -11,6 +11,7 @@
 class DkanDatastore extends Datastore implements DatastoreForm {
 
   public $endpoint = 'api/action/datastore/search.json';
+  const QUEUE_FILESIZE_LIMIT = 30000000;
 
   /**
    * Sets default items for datastore object.
@@ -96,20 +97,8 @@ class DkanDatastore extends Datastore implements DatastoreForm {
    * Retrieves current Datastore status.
    */
   public function status() {
-    if ($file = dkan_datastore_file_field($this->node)) {
-      if ((is_object($file) && $file->filemime == 'text/csv') || (is_array($file) && $file['filemime'] == 'text/csv')) {
-        if ($this->records()) {
-          return DKAN_DATASTORE_EXISTS;
-        }
-        else {
-          return DKAN_DATASTORE_FILE_EXISTS;
-        }
-      }
-      else {
-        return DKAN_DATASTORE_WRONG_TYPE;
-      }
-    }
-    return FALSE;
+   module_load_include('module', 'dkan_datastore', 'dkan_datastore');
+   return dkan_datastore_status($this->node);
   }
 
   /**
@@ -224,8 +213,39 @@ class DkanDatastore extends Datastore implements DatastoreForm {
     $this->addConfig(array($parser => $form_state['values'][$parser]));
     $this->addConfig(array($processor => $form_state['values'][$processor]));
     $this->save();
-    $this->import();
+
+    // Bypass feeds to improve the import performance
+    $table = feeds_flatstore_processor_table($source, array());
+    $node = entity_metadata_wrapper('node', $form_state['build_info']['args'][0]);
+    $file = $node->field_upload->value();
+    $file_remote = $node->field_link_remote_file->value();
+
+    // If a remote file is provided we fallback to feeds importer
+    // else we perform a fast import.
+    if(!empty($file_remote)) {
+      $this->import();
+    }
+    else {
+
+      // Avoid the queueing the resource if it's small
+      if($file->filesize > self::QUEUE_FILESIZE_LIMIT) {
+        $item = array(
+          'source' => $source,
+          'node' => $node,
+          'table' => $table,
+          'config' => $form_state['values'][$parser],
+        );
+        DrupalQueue::get(dkan_datastore_queue_name())->createItem($item);
+        drupal_set_message(t('File was succesfully enqued to be imported and will be available in the datastore in a few minutes'), 'status');
+      }
+      else {
+        dkan_datastore_fast_import($source, $node, $table, $form_state['values'][$parser]);
+        drupal_set_message(t('File was succesfully imported into the datastore'), 'status');
+      }
+    }
+
   }
+
 
   /**
    * Adds configuration to feeds source.
@@ -348,9 +368,16 @@ class DkanDatastore extends Datastore implements DatastoreForm {
    */
   public function dropFormSubmit(&$form_state) {
     module_load_include('module', 'data', 'data');
+    module_load_include('module', 'dkan_datastore', 'dkan_datastore');
     foreach ($form_state['#tables_to_drop'] as $table_name) {
       $table = data_get_table($table_name);
       if ($table) {
+        $node = node_load($form_state['build_info']['args']['0']->nid);
+        $has_file = dkan_datastore_file_field($node);
+        $node = entity_metadata_wrapper('node', $node);
+        $status = ($has_file) ? DKAN_DATASTORE_FILE_EXISTS : DKAN_DATASTORE_EMPTY;
+        $node->field_datastore_status->set($status);
+        $node->save();
         $table->drop();
       }
       elseif (db_table_exists($table_name)) {

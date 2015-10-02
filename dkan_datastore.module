@@ -5,6 +5,8 @@
  */
 
 // Datastore is created for a given resource.
+define('DKAN_DATASTORE_EMPTY', 0);
+// Datastore is created for a given resource.
 define('DKAN_DATASTORE_EXISTS', 1);
 // File is attached to a resource, but not added to the datastore.
 define('DKAN_DATASTORE_FILE_EXISTS', 2);
@@ -321,20 +323,27 @@ function dkan_datastore_node_view($node, $view_mode, $langcode) {
  * Determines status of datastore attached to resource node.
  */
 function dkan_datastore_status($node) {
-  if ($file = dkan_datastore_file_field($node)) {
-    if ((is_object($file) && $file->filemime == 'text/csv') || (is_array($file) && $file['filemime'] == 'text/csv')) {
-      if (dkan_datastore_records($node->nid)) {
-        return DKAN_DATASTORE_EXISTS;
-      }
-      else {
+  if($file = dkan_datastore_file_field($node)) {
+    if(dkan_datastore_is_importable($file)){
+      $node = entity_metadata_wrapper('node', $node);
+      if($status = $node->field_datastore_status->value()) {
+        return $status;
+      } else {
         return DKAN_DATASTORE_FILE_EXISTS;
       }
-    }
-    else {
+    } else {
       return DKAN_DATASTORE_WRONG_TYPE;
     }
+  } else {
+    return DKAN_DATASTORE_EMPTY;
   }
-  return FALSE;
+}
+
+/**
+ * Determines if a resource can be imported
+ */
+function dkan_datastore_is_importable($file) {
+  return (is_object($file) && $file->filemime == 'text/csv') || (is_array($file) && $file['filemime'] == 'text/csv');
 }
 
 /**
@@ -496,3 +505,79 @@ function dkan_datastore_node_type() {
   }
   return $node_type;
 }
+
+/**
+ * Implements hook_feeds_after_import().
+ */
+function dkan_datastore_feeds_after_import(FeedsSource $source) {
+  $importer_id = $source->importer->id;
+  $importers = array('dkan_file', 'dkan_link');
+  if(empty($source->exception) && in_array($importer_id, $importers)) {
+    $node = node_load($source->feed_nid);
+    $node = entity_metadata_wrapper('node', $node);
+    $node->field_datastore_status->set(DKAN_DATASTORE_EXISTS);
+    $node->save();
+  }
+}
+
+/**
+ * Implements hook_node_presave().
+ */
+function dkan_datastore_node_presave($node) {
+  if(is_object($node) && $node->type == 'resource') {
+    $wrap = entity_metadata_wrapper('node', $node);
+    $wrap->field_datastore_status->set(dkan_datastore_status($node));
+  }
+}
+
+/**
+ * Get the datastore queue name.
+ */
+function dkan_datastore_queue_name() {
+  return 'dkan_datastore_queue';
+}
+
+
+/**
+ * Implements hook_cron_queue_info().
+ */
+function dkan_datastore_cron_queue_info() {
+  return array(
+    dkan_datastore_queue_name() => array(
+      'worker callback' => 'dkan_datastore_import_queue_worker',
+      'skip on cron' => TRUE,
+      'time' => 600,
+    ),
+  );
+}
+
+/**
+ * Import csv using the most performant way.
+ */
+function dkan_datastore_fast_import($source, $node, $table, $config){
+  $file = $node->field_upload->value();
+  $file_path = drupal_realpath($file->uri);
+  $feeds_entity_id = $source->feed_nid;
+  $fields = implode(',', array_keys($table->meta['fields']));
+
+  $delim = $config['delimiter'];
+  $has_headers = ($config['no_headers']) ? '' : 'IGNORE 1 LINES';
+
+  $sql = "LOAD DATA INFILE '$file_path' IGNORE
+   INTO TABLE $table->name
+   COLUMNS TERMINATED BY '$delim' LINES TERMINATED BY '\n' $has_headers ($fields)
+   SET timestamp=UNIX_TIMESTAMP(), feeds_entity_id=$feeds_entity_id;";
+
+  try {
+    db_query($sql);
+    $node->field_datastore_status->set(DKAN_DATASTORE_EXISTS);
+    $node->save();
+  } catch (Exception $e) {
+    drupal_set_message(t('An error occurred trying to import this file'), 'error');
+  }
+}
+
+function dkan_datastore_import_queue_worker($item){
+  dkan_datastore_fast_import($item['source'], $item['node'], $item['table'], $item['config']);
+}
+
