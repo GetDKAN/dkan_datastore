@@ -12,6 +12,7 @@ class DkanDatastore extends Datastore implements DatastoreForm {
 
   public $endpoint = 'api/action/datastore/search.json';
   const QUEUE_FILESIZE_LIMIT = 30000000;
+  const BATCH_FILESIZE_LIMIT = 5000000;
 
   /**
    * Sets default items for datastore object.
@@ -222,11 +223,10 @@ class DkanDatastore extends Datastore implements DatastoreForm {
 
     // If a remote file is provided we fallback to feeds importer
     // else we perform a fast import.
-    if(!empty($file_remote)) {
+    if(!empty($file_remote) || $file->filesize < self::BATCH_FILESIZE_LIMIT) {
       $this->import();
     }
     else {
-
       // Avoid the queueing the resource if it's small
       if($file->filesize > self::QUEUE_FILESIZE_LIMIT) {
         $item = array(
