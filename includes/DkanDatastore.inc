@@ -236,7 +236,7 @@ class DkanDatastore extends Datastore implements DatastoreForm {
           'config' => $form_state['values'][$parser],
         );
         DrupalQueue::get(dkan_datastore_queue_name())->createItem($item);
-        drupal_set_message(t('File was succesfully enqued to be imported and will be available in the datastore in a few minutes'), 'status');
+        drupal_set_message(t('File was succesfully enqueued to be imported and will be available in the datastore in a few minutes'), 'status');
       }
       else {
         dkan_datastore_fast_import($source, $node, $table, $form_state['values'][$parser]);
