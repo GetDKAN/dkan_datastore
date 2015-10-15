@@ -568,16 +568,11 @@ function dkan_datastore_fast_import($source, $node, $table, $config){
    COLUMNS TERMINATED BY '$delim' LINES TERMINATED BY '\n' $has_headers ($fields)
    SET timestamp=UNIX_TIMESTAMP(), feeds_entity_id=$feeds_entity_id;";
 
-  try {
-    db_query($sql);
-    $node->field_datastore_status->set(DKAN_DATASTORE_EXISTS);
-    $node->save();
-  } catch (Exception $e) {
-    drupal_set_message(t('An error occurred trying to import this file'), 'error');
-  }
+  db_query($sql);
+  $node->field_datastore_status->set(DKAN_DATASTORE_EXISTS);
+  $node->save();
 }
 
 function dkan_datastore_import_queue_worker($item){
   dkan_datastore_fast_import($item['source'], $item['node'], $item['table'], $item['config']);
 }
-

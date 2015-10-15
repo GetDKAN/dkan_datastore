@@ -240,8 +240,12 @@ class DkanDatastore extends Datastore implements DatastoreForm {
         drupal_set_message(t('File was succesfully enqueued to be imported and will be available in the datastore in a few minutes'), 'status');
       }
       else {
-        dkan_datastore_fast_import($source, $node, $table, $form_state['values'][$parser]);
-        drupal_set_message(t('File was succesfully imported into the datastore'), 'status');
+        try {
+          dkan_datastore_fast_import($source, $node, $table, $form_state['values'][$parser]);
+          drupal_set_message(t('File was succesfully imported into the datastore'), 'status');
+        } catch (Exception $e) {
+          drupal_set_message(t('An error occurred trying to import this file: ' . $e->getMessage()), 'error');
+        }
       }
     }
 
