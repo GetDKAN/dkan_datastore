@@ -220,15 +220,16 @@ class DkanDatastore extends Datastore implements DatastoreForm {
     $node = entity_metadata_wrapper('node', $form_state['build_info']['args'][0]);
     $file = $node->field_upload->value();
     $file_remote = $node->field_link_remote_file->value();
+    $filesize = filesize(drupal_realpath($file->uri));
 
     // If a remote file is provided we fallback to feeds importer
     // else we perform a fast import.
-    if(!empty($file_remote) || $file->filesize < self::BATCH_FILESIZE_LIMIT) {
+    if(!empty($file_remote) || $filesize < self::BATCH_FILESIZE_LIMIT) {
       $this->import();
     }
     else {
       // Avoid the queueing the resource if it's small
-      if($file->filesize > self::QUEUE_FILESIZE_LIMIT) {
+      if($filesize > self::QUEUE_FILESIZE_LIMIT) {
         $item = array(
           'source' => $source,
           'node' => $node,
