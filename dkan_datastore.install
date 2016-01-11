@@ -17,5 +17,17 @@ function dkan_datastore_install() {
     ->condition('type', 'module')
     ->condition('name', 'dkan_datastore')
     ->execute();
+  dkan_datastore_update_7101();
+}
 
+/**
+ * 
+ */
+function dkan_datastore_update_7101() {
+  // Revert the dkan_datastore_feature.
+  $feature = features_get_features('dkan_datastore');
+  $components = array_keys($feature->info['features']);
+  features_revert(array($feature_name => $components));
+  // Save feed importers.
+  dkan_datastore_save_feed_importers();
 }
