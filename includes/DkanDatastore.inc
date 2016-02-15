@@ -11,8 +11,6 @@
 class DkanDatastore extends Datastore implements DatastoreForm {
 
   public $endpoint = 'api/action/datastore/search.json';
-  const QUEUE_FILESIZE_LIMIT = 30000000;
-  const BATCH_FILESIZE_LIMIT = 5000000;
 
   /**
    * Sets default items for datastore object.
@@ -214,41 +212,7 @@ class DkanDatastore extends Datastore implements DatastoreForm {
     $this->addConfig(array($parser => $form_state['values'][$parser]));
     $this->addConfig(array($processor => $form_state['values'][$processor]));
     $this->save();
-
-    // Bypass feeds to improve the import performance
-    $table = feeds_flatstore_processor_table($source, array());
-    $node = entity_metadata_wrapper('node', $form_state['build_info']['args'][0]);
-    $file = $node->field_upload->value();
-    $file_remote = $node->field_link_remote_file->value();
-    $filesize = filesize(drupal_realpath($file->uri));
-
-    // If a remote file is provided we fallback to feeds importer
-    // else we perform a fast import.
-    if(!empty($file_remote) || $filesize < self::BATCH_FILESIZE_LIMIT) {
-      $this->import();
-    }
-    else {
-      // Avoid the queueing the resource if it's small
-      if($filesize > self::QUEUE_FILESIZE_LIMIT) {
-        $item = array(
-          'source' => $source,
-          'node' => $node,
-          'table' => $table,
-          'config' => $form_state['values'][$parser],
-        );
-        DrupalQueue::get(dkan_datastore_queue_name())->createItem($item);
-        drupal_set_message(t('File was succesfully enqueued to be imported and will be available in the datastore in a few minutes'), 'status');
-      }
-      else {
-        try {
-          dkan_datastore_fast_import($source, $node, $table, $form_state['values'][$parser]);
-          drupal_set_message(t('File was succesfully imported into the datastore'), 'status');
-        } catch (Exception $e) {
-          drupal_set_message(t('An error occurred trying to import this file: ' . $e->getMessage()), 'error');
-        }
-      }
-    }
-
+    $this->import();
   }
 
 
