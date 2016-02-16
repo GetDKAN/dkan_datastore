@@ -298,6 +298,9 @@ function dkan_datastore_permission() {
     'manage datastore' => array(
       'title' => t('Manage Datastore'),
     ),
+    'manage datastore settings' => array(
+      'title' => t('Manage Datastore Settings')
+    )
   );
 }
 
