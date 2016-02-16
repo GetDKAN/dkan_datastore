@@ -3,7 +3,7 @@
 DKAN_MODULE="dkan_datastore"
 
 # DKAN branch to use
-DKAN_BRANCH="7.x-1.x"
+DKAN_BRANCH="big_files_support"
 
 COMPOSER_PATH=".composer/vendor/bin"
 
@@ -27,8 +27,11 @@ fi
 #Only stop on errors starting now..
 set -e
 # OK, run the script.
-bash /tmp/dkan-init.sh $DKAN_MODULE $@ --skip-reinstall
+bash /tmp/dkan-init.sh $DKAN_MODULE $@ --skip-reinstall --branch=$DKAN_BRANCH
 ahoy dkan module-link $DKAN_MODULE
 ahoy dkan module-make $DKAN_MODULE
 ahoy dkan reinstall
 ahoy drush en $DKAN_MODULE -y
+ahoy drush en dkan_datastore_fast_import -y
+
+cp dkan_datastore/modules/dkan_datastore_fast_import/test/features/dkan_datastore_fast_import.feature dkan/test/features/.
