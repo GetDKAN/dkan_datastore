@@ -11,8 +11,6 @@
 class DkanDatastore extends Datastore implements DatastoreForm {
 
   public $endpoint = 'api/action/datastore/search.json';
-  const QUEUE_FILESIZE_LIMIT = 30000000;
-  const BATCH_FILESIZE_LIMIT = 5000000;
 
   /**
    * Sets default items for datastore object.
@@ -214,41 +212,7 @@ class DkanDatastore extends Datastore implements DatastoreForm {
     $this->addConfig(array($parser => $form_state['values'][$parser]));
     $this->addConfig(array($processor => $form_state['values'][$processor]));
     $this->save();
-
-    // Bypass feeds to improve the import performance
-    $table = feeds_flatstore_processor_table($source, array());
-    $node = entity_metadata_wrapper('node', $form_state['build_info']['args'][0]);
-    $file = $node->field_upload->value();
-    $file_remote = $node->field_link_remote_file->value();
-    $filesize = filesize(drupal_realpath($file->uri));
-
-    // If a remote file is provided we fallback to feeds importer
-    // else we perform a fast import.
-    if(!empty($file_remote) || $filesize < self::BATCH_FILESIZE_LIMIT) {
-      $this->import();
-    }
-    else {
-      // Avoid the queueing the resource if it's small
-      if($filesize > self::QUEUE_FILESIZE_LIMIT) {
-        $item = array(
-          'source' => $source,
-          'node' => $node,
-          'table' => $table,
-          'config' => $form_state['values'][$parser],
-        );
-        DrupalQueue::get(dkan_datastore_queue_name())->createItem($item);
-        drupal_set_message(t('File was succesfully enqueued to be imported and will be available in the datastore in a few minutes'), 'status');
-      }
-      else {
-        try {
-          dkan_datastore_fast_import($source, $node, $table, $form_state['values'][$parser]);
-          drupal_set_message(t('File was succesfully imported into the datastore'), 'status');
-        } catch (Exception $e) {
-          drupal_set_message(t('An error occurred trying to import this file: ' . $e->getMessage()), 'error');
-        }
-      }
-    }
-
+    $this->import();
   }
 
 
@@ -375,21 +339,27 @@ class DkanDatastore extends Datastore implements DatastoreForm {
     module_load_include('module', 'data', 'data');
     module_load_include('module', 'dkan_datastore', 'dkan_datastore');
     foreach ($form_state['#tables_to_drop'] as $table_name) {
-      $table = data_get_table($table_name);
-      if ($table) {
-        $node = node_load($form_state['build_info']['args']['0']->nid);
-        $has_file = dkan_datastore_file_field($node);
-        $node = entity_metadata_wrapper('node', $node);
-        $status = ($has_file) ? DKAN_DATASTORE_FILE_EXISTS : DKAN_DATASTORE_EMPTY;
-        $node->field_datastore_status->set($status);
-        $node->save();
-        $table->drop();
-      }
-      elseif (db_table_exists($table_name)) {
-        db_drop_table($table_name);
-      }
+      $node = node_load($form_state['build_info']['args']['0']->nid);
+      $has_file = dkan_datastore_file_field($node);
+      $node = entity_metadata_wrapper('node', $node);
+      $status = ($has_file) ? DKAN_DATASTORE_FILE_EXISTS : DKAN_DATASTORE_EMPTY;
+      $node->field_datastore_status->set($status);
+      $node->save();
+      $this->dropTable($table_name);
     }
     drupal_set_message(t('Datastore dropped!'));
+  }
+
+  /**
+   * Drop a datastore table
+   */
+  private function dropTable($table_name){
+    $table = data_get_table($table_name);
+    if($table) {
+      $table->drop();
+    } elseif (db_table_exists($table_name)) {
+      db_drop_table($table_name);
+    }
   }
 
   /**
@@ -421,8 +391,7 @@ class DkanDatastore extends Datastore implements DatastoreForm {
             $output .= '<p>' . l($url, $url) . '</p>';
             $output .= '<p>' . t('Query this datastore and return first five results') . '</p>';
             $output .= '<h3>' . t('Documentation') . '</h3>';
-            $doc_link = l(t('DKAN Datastore API'), 'http://docs.getdkan.com/docs/dkan-documentation/dkan-api/datastore-api');
-            $output .= '<p>' . t('See DKAN API documentation for more details: %link', array('%link' => $doc_link)) . '</p>';
+            $output .= '<p>' . t('See DKAN API documentation for more details: <a href="http://docs.getdkan.com/docs/dkan-documentation/dkan-api/datastore-api">DKAN Datastore API</a>') . '</p>';
           }
         }
         return $output;
