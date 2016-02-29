@@ -92,7 +92,7 @@ function dkan_datastore_fast_import_settings(){
     '#title' => t('Queue Filesize Threshold'),
     '#size' => 50,
     '#default_value' => variable_get('queue_filesize_threshold', DkanDatastoreFastImport::QUEUE_FILESIZE_THRESHOLD_DEFAULT),
-    '#description' => 'Above this number all the imports will be queued. Make sure you have the a command line cron to run these imports.',
+    '#description' => 'You need to setup a cron to run periodically "drush queue-run dkan_datastore_queue". If not, files will not be imported into the datastore.',
     '#states' => array(
       'invisible' => array(
         ':input[name="dkan_datastore_fast_import_selection"]' => array('value' => DKAN_DATASTORE_BATCH_IMPORT),
