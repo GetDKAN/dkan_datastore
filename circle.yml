@@ -27,9 +27,6 @@ checkout:
 
 ## Customize dependencies
 dependencies:
-  # Increase the PHP memory limit.
-  pre:
-    - echo "memory_limit = 256M" > ~/.phpenv/versions/5.5.11/etc/conf.d/memory.ini
 
   cache_directories:
      #- "test/vendor"

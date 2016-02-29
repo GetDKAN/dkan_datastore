@@ -312,8 +312,8 @@ function dkan_datastore_node_view($node, $view_mode, $langcode) {
   $type = dkan_datastore_node_type();
   if ($node->type == $type) {
     $status = dkan_datastore_status($node);
-    if (user_access('manage datastore') && $status = dkan_datastore_status($node)) {
-      if ($status == DKAN_DATASTORE_FILE_EXISTS) {
+    if (user_access('manage datastore') && $status && $view_mode == 'full') {
+      if ($status === DKAN_DATASTORE_FILE_EXISTS) {
         drupal_set_message(t('Your file for this resource is not added to the datastore. Click "Manage Datastore" to import file into the datastore.'));
       }
       elseif ($status == DKAN_DATASTORE_EXISTS) {

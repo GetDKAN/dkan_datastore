@@ -9,20 +9,24 @@ steps:
       set -e
       # Start in the right folder of our checkout (/src)
       cd $SRC_DIR
+
       echo ""
       echo "Build $BUILD_ID "
       echo ""
+
       echo ""
       echo "-------> Run 'bash dkan-init.sh':"
       echo ""
       # Create the proper folder structure
       time bash dkan-module-init.sh --deps --build=mysql://root:strongpassword@127.0.0.1/dkan
       #Set a symlink so that probo can serve the site.
+
       echo ""
       echo "-------> Symlink ./docroot to var/www/html:"
       echo ""
       ln -s $SRC_DIR/docroot /var/www/html
       chmod -R 777 /var/www/html/sites/default/files
+
       echo ""
       echo "The url of this build should be at:"
       echo " https://$BUILD_ID.probo.build"
