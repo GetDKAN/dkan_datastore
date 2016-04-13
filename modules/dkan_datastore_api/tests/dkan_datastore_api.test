@@ -56,7 +56,6 @@ class DkanDatastoreApiWebTestCase extends DrupalWebTestCase {
     $modules[] = 'filter';
     $modules[] = 'node';
     $modules[] = 'options';
-    $modules[] = 'rdf';
     $modules[] = 'system';
     $modules[] = 'taxonomy';
     $modules[] = 'simpletest';
