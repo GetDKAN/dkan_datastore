@@ -347,7 +347,7 @@ function dkan_datastore_status($node) {
  * Determines if a resource can be imported
  */
 function dkan_datastore_is_importable($file) {
-  return (is_object($file) && $file->filemime == 'text/csv') || (is_array($file) && $file['filemime'] == 'text/csv');
+  return (is_object($file) && $file->filemime == 'text/csv') || (is_array($file) && array_key_exists('filemime', $file) && $file['filemime'] == 'text/csv');
 }
 
 /**
