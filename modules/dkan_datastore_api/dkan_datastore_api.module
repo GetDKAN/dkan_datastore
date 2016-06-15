@@ -158,6 +158,50 @@ function dkan_datastore_api_services_resources() {
             'default value' => '',
             'source' => array('param' => 'join'),
           ),
+          array(
+            'name' => 'group_by',
+            'optional' => TRUE,
+            'type' => 'array',
+            'description' => 'array of columns to group by.',
+            'default value' => '',
+            'source' => array('param' => 'group_by'),
+          ),
+
+          // AGGREGATIONS
+          array(
+            'name' => 'sum',
+            'optional' => TRUE,
+            'type' => 'array',
+            'description' => 'array of columns to sum.',
+            'default value' => '',
+            'source' => array('param' => 'sum', 'data' => 'sum'),
+          ),
+          array(
+            'name' => 'avg',
+            'optional' => TRUE,
+            'type' => 'array',
+            'description' => 'array of columns to avg.',
+            'default value' => '',
+            'source' => array('param' => 'avg', 'data' => 'avg'),
+          ),
+          array(
+            'name' => 'max',
+            'optional' => TRUE,
+            'type' => 'array',
+            'description' => 'array of columns to max.',
+            'default value' => '',
+            'source' => array('param' => 'max', 'data' => 'max'),
+          ),
+          array(
+            'name' => 'min',
+            'optional' => TRUE,
+            'type' => 'array',
+            'description' => 'array of columns to min.',
+            'default value' => '',
+            'source' => array('param' => 'min', 'data' => 'min'),
+          ),
+
+
         ),
         'access callback' => '_dkan_datastore_api_datastore_access',
         'access arguments' => array('view'),
@@ -275,7 +319,10 @@ function dkan_datastore_api_services_resources() {
  *
  * For arguments, see: dkan_datastore_api_services_resources().
  */
-function _dkan_datastore_api_datastore_index($resource_ids, $filters, $query, $offset, $limit, $fields, $sort, $join) {
+function _dkan_datastore_api_datastore_index($resource_ids, $filters, $query, $offset, $limit, $fields, $sort, $join, $group_by, $sum, $avg, $max, $min) {
+
+  $aggregations = array('sum' => $sum, 'avg' => $avg, 'max' => $max, 'min' => $min);
+
   try {
     // Query for a single resource.
     if (count($resource_ids) < 2) {
@@ -285,6 +332,8 @@ function _dkan_datastore_api_datastore_index($resource_ids, $filters, $query, $o
       $sort = dkan_datastore_api_sort_clean($sort);
       $data_select = dkan_datastore_api_build_index_query($table, $offset, $limit, $fields, $sort);
       dkan_datastore_api_add_index_conditions($data_select, $filters);
+      dkan_datastore_api_add_index_group_by($data_select, $group_by, $alias);
+      dkan_datastore_api_add_index_aggregations($data_select, $aggregations, $alias);
     }
     // Query for a multiple resources.
     else {
@@ -314,36 +363,36 @@ function _dkan_datastore_api_datastore_index($resource_ids, $filters, $query, $o
             dkan_datastore_api_add_index_conditions($data_select, $filters, $alias);
           }
         }
+        if(isset($group_by[$alias])){
+          dkan_datastore_api_add_index_group_by($data_select, $group_by[$alias], $alias);
+        }
+        dkan_datastore_api_add_index_aggregations($data_select, $aggregations, $alias);
         $i++;
       }
     }
     if ($query && $query != 'api/3/action/datastore_search') {
       dkan_datastore_api_add_index_query($data_select, $table, $query);
     }
+    $count = dkan_datastore_api_count($data_select);
+    $results = services_resource_execute_index_query($data_select);
+    return dkan_datastore_api_resource_build_index_list($results, $table, $fields, $resource_ids, $count);
   }
   catch (Exception $ex) {
-    return array('error' => array('message' => 'Caught exception: ' . $ex->getMessage()));
+    return array('sql' => dkan_datastore_api_debug($data_select),'error' => array('message' => 'Caught exception: ' . $ex->getMessage()));
   }
-  $count = dkan_datastore_api_count($table, $offset, $limit, $fields, $filters, $query);
-  $results = services_resource_execute_index_query($data_select);
-  return dkan_datastore_api_resource_build_index_list($results, $table, $fields, $resource_ids, $count);
+
 }
+
+
 
 /**
  * Retrieves count given fully query without paging limit.
  */
-function dkan_datastore_api_count($table, $offset, $limit, $fields, $filters, $query) {
-
-  $count_select = db_select($table, 'counter');
-  $count_select->addExpression('COUNT(feeds_flatstore_entry_id)', 'count');
-  if ($filters) {
-    dkan_datastore_api_add_index_conditions($count_select, $filters, 'counter');
-  }
-  if ($query) {
-    dkan_datastore_api_add_index_query($count_select, $table, $query);
-  }
-  $result = $count_select->execute()->fetchAll();
-  return $result[0]->count;
+function dkan_datastore_api_count($data_select) {
+  $query = clone($data_select);
+  $count = $query->range()->countQuery()->execute()->fetchAll();
+  $count = $count[0]->expression;
+  return $count;
 }
 
 /**
@@ -364,6 +413,32 @@ function dkan_datastore_api_add_index_conditions(&$data_select, $filters, $alias
     }
   }
 }
+
+
+/**
+ * Adds group by statements to query.
+ */
+function dkan_datastore_api_add_index_group_by(&$data_select, $group_by, $alias) {
+  if($group_by) {
+    $group_by = (is_array($group_by)) ? $group_by : services_str_getcsv($group_by);
+    foreach ($group_by as $field) {
+      $data_select->groupBy($alias.'.'.$field);
+    }
+  }
+}
+
+
+/**
+ * Adds aggregations to query.
+ */
+function dkan_datastore_api_add_index_aggregations(&$data_select, $aggregations, $alias) {
+  foreach ($aggregations as $agg => $value) {
+    if($value[$alias]) {
+      $data_select->addExpression($agg . '(' .$value[$alias]. ')', $value[$alias] . '_' . $agg);
+    }
+  }
+}
+
 
 /**
  * Add search terms ("query") to query.
@@ -495,7 +570,7 @@ function dkan_datastore_api_build_index_query($table, $offset, $limit, $fields, 
  * Same as services version but not adding conditions.
  */
 function dkan_datastore_api_resource_build_index_query(&$query, $page, $fields, $page_size, $alias, $table) {
-  $default_limit = variable_get("dkan_datastore_default_page_size", 100);
+  $default_limit = variable_get('dkan_datastore_default_page_size', 100);
   if ((!user_access('perform unlimited index queries') && $page_size > $default_limit) || !$page_size) {
     $page_size = $default_limit;
   }
@@ -519,6 +594,7 @@ function _dkan_datastore_api_datastore_access($op) {
  * Builds index link with results of the query.
  */
 function dkan_datastore_api_resource_build_index_list($results, $table, $fields, $resource_ids, $count) {
+
   // Put together array of matching items to return.
   $items = array();
   $endpoint_name = services_get_server_info('endpoint');
@@ -580,7 +656,7 @@ function dkan_datastore_api_resource_build_index_list($results, $table, $fields,
   $query = db_select($table, 't');
   $query->addExpression('count(t.timestamp)', 'count');
   $total = $query->execute()->fetchCol();
-  $return->total = $count;
+  $return->total = (int)$count;
   $return->records = $items;
 
   return $help + $success + array('result' => $return);
@@ -783,4 +859,8 @@ function process_file_argument($file) {
   file_usage_add($file_saved, 'dkan_datastore_api', 'files', $file_saved->fid);
 
   return $file_saved;
+}
+
+function dkan_datastore_api_debug($data_select) {
+  return array('sql' => (string)$data_select);
 }
