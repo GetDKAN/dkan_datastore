@@ -249,18 +249,22 @@ function _dkan_datastore_api_get_params($params = array()) {
     'offset' => 0,
     'limit' => 10,
     'group_by' => array(),
-    'avg' => array(),
-    'sum' => array(),
-    'min' => array(),
-    'max' => array(),
+    'avg' => '',
+    'sum' => '',
+    'min' => '',
+    'max' => '',
+    'std' => '',
+    'variance' => '',
   );
   $params = array_merge($defaults, $params);
   $sort = dkan_datastore_api_sort_clean($params['sort']);
   $aggregations = array(
     'sum' => $params['sum'],
     'avg' => $params['avg'],
+    'min' => $params['min'],
     'max' => $params['max'],
-    'min' => $params['min']
+    'std' => $params['min'],
+    'variance' => $params['variance'],
   );
   unset($params['resource_id']);
   return array_merge($params, array('aggregations' => $aggregations, 'sort' => $sort));
@@ -389,10 +393,11 @@ function dkan_datastore_api_add_index_group_by(&$data_select, $group_by, $alias 
  */
 function dkan_datastore_api_add_index_aggregations(&$data_select, $aggregations, $alias = null) {
   foreach ($aggregations as $method => $agg) {
-    $fieldList = $alias && is_array($agg) && isset($agg[$alias]) ? $agg[$alias] : $agg;
-    $fields = join(',', $fieldList);
-    if(!empty($fields)) {
-      $data_select->addExpression($method . '(' .$fields. ')', $method . '_' . join('_', $fieldList));
+    $fieldName = $alias && is_array($agg) && isset($agg[$alias]) ? $agg[$alias] : $agg;
+    $fieldFull = $alias ? $alias.'.'.$fieldName : $fieldName;
+
+    if(!empty($fieldName)) {
+      $data_select->addExpression($method . '(' .$fieldFull. ')', $method . '_' . $fieldName);
     }
   }
 }
