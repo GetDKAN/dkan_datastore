@@ -5,26 +5,6 @@
  */
 class DkanDatastoreAPITest extends \PHPUnit_Framework_TestCase {
 
-  private static function getResources() {
-    $resources = array(
-      array(
-        'filename' => 'gold_prices.csv',
-        'title' => 'Gold Prices',
-        'uuid'=>'3a05eb8c-3733-11e6-ac61-9e71128cae77'
-      ),
-      array(
-        'filename' => 'gold_prices_states.csv',
-        'title' => 'Gold Prices States',
-        'uuid'=>'3a05eb8c-3733-11e6-ac61-9e71128cae78'
-      ),
-      array(
-        'filename' => 'polling_places.csv',
-        'title' => 'Polling Places',
-        'uuid'=>'3a05eb9c-3733-11e6-ac61-9e71128cae79'
-      ),
-    );
-    return $resources;
-  }
   /**
    * {@inheritdoc}
    */
@@ -36,6 +16,45 @@ class DkanDatastoreAPITest extends \PHPUnit_Framework_TestCase {
 
   }
 
+  /**
+   * Retrieves an keyed array of resources.
+   */
+  private static function getResources() {
+    $resources = array(
+      'gold_prices' => array(
+        'filename' => 'gold_prices.csv',
+        'title' => 'Gold Prices',
+        'uuid'=>'3a05eb8c-3733-11e6-ac61-9e71128cae77'
+      ),
+      'gold_prices_states' => array(
+        'filename' => 'gold_prices_states.csv',
+        'title' => 'Gold Prices States',
+        'uuid'=>'3a05eb8c-3733-11e6-ac61-9e71128cae78'
+      ),
+      'polling_places' => array(
+        'filename' => 'polling_places.csv',
+        'title' => 'Polling Places',
+        'uuid'=>'3a05eb9c-3733-11e6-ac61-9e71128cae79'
+      ),
+    );
+    return $resources;
+  }
+
+  /**
+   * Given a resource key retrieves a uuid.
+   */
+  private static function getUUID($key, $resources) {
+    if(array_key_exists($key, $resources)) {
+      return $resources[$key]['uuid'];
+    } else {
+      throw new \Exception('Resource is not defined');
+    }
+
+  }
+
+  /**
+   * Add a resource to test.
+   */
   private static function addResource($resource) {
 
     // Create resource.
@@ -78,7 +97,7 @@ class DkanDatastoreAPITest extends \PHPUnit_Framework_TestCase {
   public function test_dkan_datstore_api_query() {
     $params = array(
       'resource_id' => array(
-        'polling_places' =>'3a05eb9c-3733-11e6-ac61-9e71128cae79'
+        'polling_places' => self::getUUID('polling_places', self::getResources()),
       ),
       'limit' => 1000,
       'query' => 'City'
@@ -94,7 +113,7 @@ class DkanDatastoreAPITest extends \PHPUnit_Framework_TestCase {
   public function test_dkan_datstore_api_filters() {
     $params = array(
       'resource_id' => array(
-        'gold_prices' =>'3a05eb8c-3733-11e6-ac61-9e71128cae77'
+        'gold_prices' => self::getUUID('gold_prices', self::getResources()),
       ),
       'limit' => 1000,
       'filters' => array(
@@ -112,7 +131,7 @@ class DkanDatastoreAPITest extends \PHPUnit_Framework_TestCase {
   public function test_dkan_datstore_api_offset() {
     $params = array(
       'resource_id' => array(
-        'gold_prices_states' =>'3a05eb8c-3733-11e6-ac61-9e71128cae78'
+        'gold_prices_states' => self::getUUID('gold_prices_states', self::getResources()),
       ),
       'limit' => 1,
       'offset' => 1,
@@ -128,7 +147,7 @@ class DkanDatastoreAPITest extends \PHPUnit_Framework_TestCase {
   public function test_dkan_datstore_api_limit() {
     $params = array(
       'resource_id' => array(
-        'gold_prices_states' =>'3a05eb8c-3733-11e6-ac61-9e71128cae78'
+        'gold_prices_states' => self::getUUID('gold_prices_states', self::getResources()),
       ),
       'limit' => 1
     );
@@ -143,7 +162,7 @@ class DkanDatastoreAPITest extends \PHPUnit_Framework_TestCase {
   public function test_dkan_datstore_api_fields() {
     $params = array(
       'resource_id' => array(
-        'gold_prices' =>'3a05eb8c-3733-11e6-ac61-9e71128cae78'
+        'gold_prices_states' => self::getUUID('gold_prices_states', self::getResources()),
       ),
       'fields' => array('nombre'),
       'limit' => 1,
@@ -159,7 +178,7 @@ class DkanDatastoreAPITest extends \PHPUnit_Framework_TestCase {
   public function test_dkan_datstore_api_sort() {
     $params = array(
       'resource_id' => array(
-        'gold_prices_states' =>'3a05eb8c-3733-11e6-ac61-9e71128cae78'
+        'gold_prices_states' => self::getUUID('gold_prices_states', self::getResources()),
       ),
       'sort' => array('state_id' => 'desc'),
       'limit' => 1
@@ -175,7 +194,7 @@ class DkanDatastoreAPITest extends \PHPUnit_Framework_TestCase {
   public function test_dkan_datstore_api_group_by() {
     $params = array(
       'resource_id' => array(
-        'gold_prices' =>'3a05eb8c-3733-11e6-ac61-9e71128cae77'
+        'gold_prices' => self::getUUID('gold_prices', self::getResources()),
       ),
       'limit' => 1000,
       'group_by' => array('price')
@@ -191,11 +210,11 @@ class DkanDatastoreAPITest extends \PHPUnit_Framework_TestCase {
   public function test_dkan_datstore_api_join() {
     $params = array(
       'resource_id' => array(
-        'states' => '3a05eb8c-3733-11e6-ac61-9e71128cae78',
-        'gold_prices' => '3a05eb8c-3733-11e6-ac61-9e71128cae77'
+        'gold_prices_states' => self::getUUID('gold_prices_states', self::getResources()),
+        'gold_prices' => self::getUUID('gold_prices', self::getResources()),
       ),
       'join' => array(
-        'states' => 'state_id',
+        'gold_prices_states' => 'state_id',
         'gold_prices' => 'state_id',
       ),
       'limit' => 5,
