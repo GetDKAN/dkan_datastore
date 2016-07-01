@@ -47,6 +47,25 @@ function dkan_datastore_download($node) {
 }
 
 /**
+ * Proxy remote resources.
+ */
+function dkan_datastore_proxy($node) {
+  $allowed_types = array('csv');
+  $node_wrapper = entity_metadata_wrapper('node', $node);
+  $remote_file = $node_wrapper->field_link_remote_file->value();
+  $uri = $remote_file['uri'];
+  $filename = $remote_file['filename'];
+  $mime = $remote_file['filemime'];
+  $type = recline_get_data_type($remote_file['filemime']);
+
+  if(in_array($type, $allowed_types)) {
+    drupal_add_http_header('Content-Type', $mime);
+    drupal_add_http_header('Content-Disposition', 'attachment; filename=' . $filename);
+    print file_get_contents($uri);
+  }
+}
+
+/**
  * Callback for back link.
  */
 function dkan_datastore_back($node) {
