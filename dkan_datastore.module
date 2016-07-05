@@ -124,7 +124,7 @@ function dkan_datastore_resource_link_type($node) {
     return array('url' => $link['url'], 'type' => 'link');
   } else {
     drupal_set_message(t('No download available for this resource'));
-    return '';    
+    return array('type' => 'upload');
   }  
 }
 
