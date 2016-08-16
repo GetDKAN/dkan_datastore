@@ -253,20 +253,50 @@ function _dkan_datastore_api_get_params($params = array()) {
     'min' => '',
     'max' => '',
     'std' => '',
+    'count' => '',
     'variance' => '',
   );
   $params = array_merge($defaults, $params);
   $sort = dkan_datastore_api_sort_clean($params['sort']);
+  $fields = _dkan_datastore_api_fields_clean($params['fields']);
   $aggregations = array(
     'sum' => $params['sum'],
     'avg' => $params['avg'],
     'min' => $params['min'],
     'max' => $params['max'],
     'std' => $params['min'],
+    'count' => $params['count'],
     'variance' => $params['variance'],
   );
   unset($params['resource_id']);
-  return array_merge($params, array('aggregations' => $aggregations, 'sort' => $sort));
+  $params = array_intersect_key($params, $defaults);
+  return array_merge($params, array(
+    'aggregations' => $aggregations, 
+    'sort' => $sort,
+    'fields' => $fields,
+  ));
+}
+
+/**
+ * Field safe name.
+ * It depends on the feeds_flatstore_processor_safe_name but
+ * I decided to wrap it to make easy to decouple it.
+ */
+function _dkan_datastore_api_field_safe_name($field) {
+  return feeds_flatstore_processor_safe_name($field);
+}
+
+/**
+ * Clean fields.
+ */
+function _dkan_datastore_api_fields_clean($fields) {
+  if($fields == '*'){
+    return $fields;
+  } elseif(is_array($fields)) {
+    return array_map('_dkan_datastore_api_field_safe_name', $fields);
+  } elseif(is_string($fields)) {
+    return array_map('_dkan_datastore_api_field_safe_name', explode(',', $fields));
+  }
 }
 
 /**
@@ -275,7 +305,7 @@ function _dkan_datastore_api_get_params($params = array()) {
 function _dkan_datastore_api_query($params) {
   extract($params);
   $data_select = null;
-  $aggregations = array('sum' => $sum, 'avg' => $avg, 'max' => $max, 'min' => $min);
+  $aggregations = array('sum' => $sum, 'avg' => $avg, 'max' => $max, 'min' => $min, 'count' => $count);
 
   try {
     // Query for a single resource.
@@ -382,7 +412,7 @@ function dkan_datastore_api_add_index_group_by(&$data_select, $group_by, $alias 
   if($group_by) {
     $group_by = (is_array($group_by)) ? $group_by : services_str_getcsv($group_by);
     foreach ($group_by as $field) {
-      $data_select->groupBy($alias.'.'.$field);
+      $data_select->groupBy($alias.'.'._dkan_datastore_api_field_safe_name($field));
     }
   }
 }
@@ -397,7 +427,7 @@ function dkan_datastore_api_add_index_aggregations(&$data_select, $aggregations,
     $fieldFull = $alias ? $alias.'.'.$fieldName : $fieldName;
 
     if(!empty($fieldName)) {
-      $data_select->addExpression($method . '(' .$fieldFull. ')', $method . '_' . $fieldName);
+      $data_select->addExpression($method . '(' ._dkan_datastore_api_field_safe_name($fieldFull). ')', $method . '_' . _dkan_datastore_api_field_safe_name($fieldName));
     }
   }
 }
@@ -479,7 +509,7 @@ function dkan_datastore_api_sort_clean($sort) {
 
   $sort = explode(" $type", $sort);
   foreach ($sort as $key => $value) {
-    $sort[$key] = feeds_flatstore_processor_safe_name($value);
+    $sort[$key] = _dkan_datastore_api_field_safe_name($value);
   }
   $sort = implode(" $type", $sort);
   return $sort;
