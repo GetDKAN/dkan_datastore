@@ -243,7 +243,7 @@ function _dkan_datastore_api_get_params($params = array()) {
     'fields' => '*',
     'sort' => '',
     'filters' => array(),
-    'joins' => array(),
+    'join' => array(),
     'query' => '',
     'offset' => 0,
     'limit' => 10,
@@ -252,9 +252,7 @@ function _dkan_datastore_api_get_params($params = array()) {
     'sum' => '',
     'min' => '',
     'max' => '',
-    'std' => '',
     'count' => '',
-    'variance' => '',
   );
   $params = array_merge($defaults, $params);
   $sort = dkan_datastore_api_sort_clean($params['sort']);
@@ -264,9 +262,7 @@ function _dkan_datastore_api_get_params($params = array()) {
     'avg' => $params['avg'],
     'min' => $params['min'],
     'max' => $params['max'],
-    'std' => $params['min'],
     'count' => $params['count'],
-    'variance' => $params['variance'],
   );
   unset($params['resource_id']);
   $params = array_intersect_key($params, $defaults);
@@ -353,7 +349,7 @@ function _dkan_datastore_api_query($params) {
     }
     $count = dkan_datastore_api_count($data_select);
     $results = services_resource_execute_index_query($data_select);
-    return dkan_datastore_api_resource_build_index_list($results, $table, $fields, $resource_ids, $count, $limit);
+    return dkan_datastore_api_resource_build_index_list($data_select, $results, $table, $fields, $resource_ids, $count, $limit);
   }
   catch (Exception $ex) {
     return array('sql' => dkan_datastore_api_debug($data_select),'error' => array('message' => 'Caught exception: ' . $ex->getMessage()));
@@ -597,7 +593,7 @@ function _dkan_datastore_api_datastore_access($op) {
 /**
  * Builds index link with results of the query.
  */
-function dkan_datastore_api_resource_build_index_list($results, $table, $fields, $resource_ids, $count, $limit) {
+function dkan_datastore_api_resource_build_index_list($data_select, $results, $table, $fields, $resource_ids, $count, $limit) {
   // Put together array of matching items to return.
   $items = array();
   foreach ($results as $result) {
@@ -657,7 +653,7 @@ function dkan_datastore_api_resource_build_index_list($results, $table, $fields,
   $return->limit = (int)$limit;
   $return->total = (int)$count;
   $return->records = $items;
-
+  $return->sql = (string)$data_select;
   return $help + $success + array('result' => $return);
 }
 

@@ -250,4 +250,31 @@ class DkanDatastoreAPITest extends \PHPUnit_Framework_TestCase {
     $this->assertEquals(count($result['my_query']['result']->records), 5);
     $this->assertEquals(count($result['my_query1']['result']->records), 5);
   }
+
+  /**
+   * Test aggregations
+   */
+  public function test_dkan_datstore_api_aggregations() {
+    $aggregations = array('sum', 'avg', 'min', 'max', 'count');
+    $expect = array(
+      'sum' => 219726,
+      'avg' => 293,
+      'min' => 34,
+      'max' => 1780,
+      'count' => 748,
+    );
+    foreach ($aggregations as $agg) {
+      $params = array(
+        'resource_id' => array(
+          'gold_prices' => self::getUUID('gold_prices', self::getResources()),
+        ),
+        'limit' => 1000
+      );
+      $params[$agg] = 'price';
+      $params = _dkan_datastore_api_get_params($params);
+      $result = _dkan_datastore_api_query($params);
+      $this->assertEquals(floor($result['result']->records[0]->{$agg.'_price'}) , $expect[$agg]);
+    }
+
+  }
 }
