@@ -46,6 +46,9 @@ function dkan_datastore_api_default_services_endpoint() {
         'index' => array(
           'enabled' => '1',
         ),
+        'create' => array(
+          'enabled' => '1',
+        ),
       ),
     ),
     'dkan_datastore' => array(
