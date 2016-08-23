@@ -553,7 +553,7 @@ function dkan_datastore_api_build_index_query($table, $offset, $limit, $fields, 
     $columns = $sort;
   }
 
-  if(count($columns) == 1 && array_values($columns)[0] == '') {
+  if(count($columns) == 1 && current(array_values($columns)) == '') {
 
     $data_select->orderBy($alias . '.feeds_flatstore_entry_id', 'ASC');
   } else {
