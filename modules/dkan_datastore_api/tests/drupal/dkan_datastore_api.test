@@ -56,7 +56,6 @@ class DkanDatastoreApiWebTestCase extends DrupalWebTestCase {
     $modules[] = 'filter';
     $modules[] = 'node';
     $modules[] = 'options';
-    $modules[] = 'rdf';
     $modules[] = 'system';
     $modules[] = 'taxonomy';
     $modules[] = 'simpletest';
@@ -93,7 +92,6 @@ class DkanDatastoreApiWebTestCase extends DrupalWebTestCase {
     $modules[] = 'remote_stream_wrapper';
     $modules[] = 'strongarm';
     $modules[] = 'token';
-    $modules[] = 'rdfx';
     $modules[] = 'search_api';
     $modules[] = 'services';
     $modules[] = 'rest_server';
