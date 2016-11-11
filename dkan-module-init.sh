@@ -3,7 +3,7 @@
 DKAN_MODULE=`ls *.info | cut -d'.' -f1`
 
 # DKAN branch or tag to use.
-DKAN_VERSION="4233_improve_datastore_security"
+DKAN_VERSION="release-1-12"
 
 COMPOSER_PATH="$HOME/.config/composer/vendor/bin"
 
