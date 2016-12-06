@@ -5,6 +5,9 @@
  * Callbacks for datastore pages.
  */
 
+// Default to 50MB.
+define('MAX_FILE_REMOTE_PROXY_DEFAULT', 1024 * 1024 * 50);
+
 /**
  * Callback for Data API instructions.
  */
@@ -40,10 +43,11 @@ function dkan_datastore_download($node) {
     return drupal_goto($url);
   }
   elseif ($type == 'remote') {
-    $size = isset($node_wrapper->field_link_remote_file->value()['filesize']) ? (int) $node_wrapper->field_link_remote_file->value()['filesize'] : int(0);
+    $size = isset($node_wrapper->field_link_remote_file->value()['filesize']) ? (int) $node_wrapper->field_link_remote_file->value()['filesize'] : 0;
+
     // dkan_datastore_proxy() loads the file locally which has a big memory footprint.
     // If the file is too large we don't want to proxy.
-    $max = (int) variable_get('dkan_datastore_max_file_remote_proxy_size', 50000000);
+    $max = (int) variable_get('dkan_datastore_max_file_remote_proxy_size', MAX_FILE_REMOTE_PROXY_DEFAULT);
     if ($size > $max) {
       drupal_goto($url);
     }
