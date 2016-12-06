@@ -1,3 +1,7 @@
+7.x-1.12.x
+----------
+- Cache recline embeds 
+
 7.x-1.12 2015-04-01
 --------------------------
 - Add update function enable field_hidden module
