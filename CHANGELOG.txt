@@ -1,6 +1,6 @@
 7.x-1.12.x
 ----------
-- Cache recline embeds 
+- Add limit to proxy resources.
 
 7.x-1.12 2015-04-01
 --------------------------
