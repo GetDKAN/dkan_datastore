@@ -1,3 +1,7 @@
+7.x-1.12.14
+----------------------
+- Fix the "Manage Datastore" tab displaying on group nodes.
+
 7.x-1.12.13 2017-01-04
 ----------------------
 - Add limit to proxy resources.
