@@ -26,4 +26,5 @@ function dkan_datastore_install() {
  */
 function dkan_datastore_update_7001() {
   module_enable(array('field_hidden'));
+  features_revert(array('dkan_datastore' => array('field_base', 'field_instance')));
 }
