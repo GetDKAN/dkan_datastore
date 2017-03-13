@@ -5,6 +5,7 @@
 7.x-1.12.13 2017-01-04
 ----------------------
 - Add limit to proxy resources.
+- Upgrade dkan_datastore_api.
 
 7.x-1.12 2015-04-01
 --------------------------
