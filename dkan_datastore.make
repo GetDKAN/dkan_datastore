@@ -18,7 +18,7 @@ projects[feeds_field_fetcher][subdir] = contrib
 projects[feeds_field_fetcher][type] = module
 
 projects[feeds_flatstore_processor][download][type] = git
-projects[feeds_flatstore_processor][download][url] = "https://github.com/NuCivic/feeds_flatstore_processor.git"
+projects[feeds_flatstore_processor][download][url] = "https://github.com/eindgebruiker/feeds_flatstore_processor.git"
 projects[feeds_flatstore_processor][download][branch] = master
 projects[feeds_flatstore_processor][subdir] = contrib
 projects[feeds_flatstore_processor][type] = module
